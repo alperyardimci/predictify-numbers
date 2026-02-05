@@ -17,7 +17,8 @@
       "bundleIdentifier": "com.alperyardimci.predictifynumbers",
       "buildNumber": "1",
       "infoPlist": {
-        "CFBundleDisplayName": "Predictify Numbers"
+        "CFBundleDisplayName": "Predictify Numbers",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

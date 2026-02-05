@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 5.0.0"
+    "version": ">= 5.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -21,8 +22,8 @@
     "production": {
       "ios": {
         "appleId": "alperyardimci@icloud.com",
-        "ascAppId": "WILL_BE_SET_AFTER_APP_CREATION",
-        "appleTeamId": "WILL_BE_SET"
+        "ascAppId": "WILL_BE_SET_AFTER_FIRST_BUILD",
+        "appleTeamId": "WILL_BE_SET_AFTER_FIRST_BUILD"
       }
     }
   }
