@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, borderRadius } from '../constants/theme';
+import { colors, spacing } from '../constants/theme';
 import { formatTime } from '../utils/gameLogic';
 
 interface TimerProps {
@@ -44,29 +44,26 @@ export function Timer({ startTime, isRunning, moveCount }: TimerProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   item: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    gap: 4,
+    paddingHorizontal: spacing.sm,
   },
   label: {
-    fontSize: 14,
+    fontSize: 11,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
   },
   value: {
-    fontSize: 28,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.text,
   },
   divider: {
     width: 1,
-    height: 40,
+    height: 20,
     backgroundColor: colors.border,
   },
 });

@@ -102,19 +102,20 @@ export function GameScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      <Timer
-        startTime={state.startTime}
-        isRunning={state.gameStatus === 'playing'}
-        moveCount={state.moveCount}
-      />
-
-      <View style={styles.toggleRow}>
-        <Text style={styles.toggleLabel}>Yardımlı Mod</Text>
+      <View style={styles.infoRow}>
+        <Timer
+          startTime={state.startTime}
+          isRunning={state.gameStatus === 'playing'}
+          moveCount={state.moveCount}
+        />
+        <View style={styles.infoSpacer} />
+        <Text style={styles.toggleLabel}>Yardımlı</Text>
         <Switch
           value={assistedMode}
           onValueChange={setAssistedMode}
           trackColor={{ false: colors.border, true: colors.primary }}
           thumbColor={colors.text}
+          style={styles.toggleSwitch}
         />
       </View>
 
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 6,
   },
   backButton: {
     padding: spacing.sm,
@@ -168,36 +169,45 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: colors.text,
   },
   placeholder: {
     width: 60,
   },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginBottom: 6,
+  },
+  infoSpacer: {
+    flex: 1,
+  },
+  toggleLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginRight: 6,
+  },
+  toggleSwitch: {
+    transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }],
+  },
   inputSection: {
-    marginTop: spacing.lg,
+    marginTop: 6,
   },
   historySection: {
     flex: 1,
-    marginTop: spacing.lg,
+    marginTop: 6,
   },
   historyTitle: {
-    fontSize: 18,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: spacing.md,
-    paddingLeft: spacing.sm,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  toggleLabel: {
-    fontSize: 14,
-    color: colors.textSecondary,
+    marginBottom: 4,
+    paddingLeft: 6,
   },
 });

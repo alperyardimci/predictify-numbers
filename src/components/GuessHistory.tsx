@@ -69,7 +69,7 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
                 <Text style={styles.bullText}>+{guess.bulls}</Text>
               </View>
               <View style={styles.resultItem}>
-                <Text style={styles.resultLabel}>Yanlış Yerde</Text>
+                <Text style={styles.resultLabel}>Yanlış Yer</Text>
                 <Text style={styles.cowText}>-{guess.cows}</Text>
               </View>
             </View>
@@ -91,12 +91,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 16,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.textSecondary,
     opacity: 0.7,
   },
@@ -104,9 +104,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    borderRadius: 8,
+    padding: 5,
+    paddingHorizontal: 8,
+    marginBottom: 3,
   },
   latestGuessRow: {
     backgroundColor: colors.card,
@@ -114,29 +115,29 @@ const styles = StyleSheet.create({
     borderLeftColor: colors.primary,
   },
   indexContainer: {
-    width: 40,
+    width: 24,
   },
   indexText: {
-    fontSize: 14,
+    fontSize: 11,
     color: colors.textSecondary,
   },
   guessContainer: {
     flex: 1,
   },
   guessText: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: colors.text,
-    letterSpacing: 8,
+    letterSpacing: 6,
   },
   digitRow: {
     flexDirection: 'row',
-    gap: spacing.xs,
+    gap: 3,
   },
   digitBox: {
-    width: 36,
-    height: 40,
-    borderRadius: borderRadius.sm,
+    width: 28,
+    height: 30,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -150,34 +151,38 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   digitText: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
     color: colors.text,
   },
   resultContainer: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: 4,
+    flexShrink: 0,
+    marginLeft: 6,
   },
   resultItem: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.card,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 5,
     alignItems: 'center',
+    minWidth: 36,
   },
   resultLabel: {
-    fontSize: 10,
+    fontSize: 8,
     color: colors.textSecondary,
-    marginBottom: 2,
+    lineHeight: 10,
   },
   bullText: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     color: colors.bull,
+    lineHeight: 18,
   },
   cowText: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     color: colors.cow,
+    lineHeight: 18,
   },
 });
