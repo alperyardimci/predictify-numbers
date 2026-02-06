@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Text,
+  Switch,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -28,6 +29,7 @@ export function GameScreen() {
   const { state, dispatch } = useGame();
   const [showResult, setShowResult] = useState(false);
   const [finalTime, setFinalTime] = useState(0);
+  const [assistedMode, setAssistedMode] = useState(false);
 
   useEffect(() => {
     // If navigated with different digits, start new game
@@ -106,6 +108,16 @@ export function GameScreen() {
         moveCount={state.moveCount}
       />
 
+      <View style={styles.toggleRow}>
+        <Text style={styles.toggleLabel}>Yardımlı Mod</Text>
+        <Switch
+          value={assistedMode}
+          onValueChange={setAssistedMode}
+          trackColor={{ false: colors.border, true: colors.primary }}
+          thumbColor={colors.text}
+        />
+      </View>
+
       <View style={styles.inputSection}>
         <GuessInput
           digits={state.digits}
@@ -116,7 +128,12 @@ export function GameScreen() {
 
       <View style={styles.historySection}>
         <Text style={styles.historyTitle}>Tahmin Geçmişi</Text>
-        <GuessHistory guesses={state.guesses} digits={state.digits} />
+        <GuessHistory
+          guesses={state.guesses}
+          digits={state.digits}
+          assistedMode={assistedMode}
+          secretNumber={state.secretNumber}
+        />
       </View>
 
       <ResultModal
@@ -170,5 +187,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.md,
+    paddingLeft: spacing.sm,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });

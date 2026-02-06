@@ -51,6 +51,41 @@ export function checkGuess(
   return { bulls, cows };
 }
 
+export function getDigitStatuses(
+  secret: string,
+  guess: string
+): ('bull' | 'cow' | 'miss')[] {
+  const statuses: ('bull' | 'cow' | 'miss')[] = new Array(guess.length).fill('miss');
+  const secretUsed = new Array(secret.length).fill(false);
+  const guessUsed = new Array(guess.length).fill(false);
+
+  // First pass: mark bulls (exact matches)
+  for (let i = 0; i < guess.length; i++) {
+    if (guess[i] === secret[i]) {
+      statuses[i] = 'bull';
+      secretUsed[i] = true;
+      guessUsed[i] = true;
+    }
+  }
+
+  // Second pass: mark cows (wrong position)
+  for (let i = 0; i < guess.length; i++) {
+    if (guessUsed[i]) continue;
+
+    for (let j = 0; j < secret.length; j++) {
+      if (secretUsed[j]) continue;
+
+      if (guess[i] === secret[j]) {
+        statuses[i] = 'cow';
+        secretUsed[j] = true;
+        break;
+      }
+    }
+  }
+
+  return statuses;
+}
+
 export function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
