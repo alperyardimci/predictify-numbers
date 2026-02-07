@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { Guess } from '../types';
 import { getDigitStatuses } from '../utils/gameLogic';
-import { colors, spacing, borderRadius } from '../constants/theme';
+import { colors, spacing } from '../constants/theme';
 
 interface GuessHistoryProps {
   guesses: Guess[];
@@ -24,8 +24,12 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {guesses.map((guess, index) => {
+    <FlatList
+      style={styles.container}
+      data={guesses}
+      keyExtractor={(_, index) => index.toString()}
+      showsVerticalScrollIndicator={false}
+      renderItem={({ item: guess, index }) => {
         const isLatest = index === 0;
         const digitStatuses = assistedMode && secretNumber
           ? getDigitStatuses(secretNumber, guess.value)
@@ -33,7 +37,6 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
 
         return (
           <View
-            key={index}
             style={[
               styles.guessRow,
               isLatest && styles.latestGuessRow,
@@ -45,19 +48,30 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
             <View style={styles.guessContainer}>
               {assistedMode && digitStatuses ? (
                 <View style={styles.digitRow}>
-                  {guess.value.split('').map((digit, dIndex) => (
-                    <View
-                      key={dIndex}
-                      style={[
-                        styles.digitBox,
-                        digitStatuses[dIndex] === 'bull' && styles.digitBull,
-                        digitStatuses[dIndex] === 'cow' && styles.digitCow,
-                        digitStatuses[dIndex] === 'miss' && styles.digitMiss,
-                      ]}
-                    >
-                      <Text style={styles.digitText}>{digit}</Text>
-                    </View>
-                  ))}
+                  {guess.value.split('').map((digit, dIndex) => {
+                    const status = digitStatuses[dIndex];
+                    if (status === 'bull-repeat') {
+                      return (
+                        <View key={dIndex} style={[styles.digitBox, styles.digitBullRepeat]}>
+                          <View style={styles.diagonalOverlay} />
+                          <Text style={[styles.digitText, styles.digitTextOverlay]}>{digit}</Text>
+                        </View>
+                      );
+                    }
+                    return (
+                      <View
+                        key={dIndex}
+                        style={[
+                          styles.digitBox,
+                          status === 'bull' && styles.digitBull,
+                          status === 'cow' && styles.digitCow,
+                          status === 'miss' && styles.digitMiss,
+                        ]}
+                      >
+                        <Text style={styles.digitText}>{digit}</Text>
+                      </View>
+                    );
+                  })}
                 </View>
               ) : (
                 <Text style={styles.guessText}>{guess.value}</Text>
@@ -65,18 +79,22 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
             </View>
             <View style={styles.resultContainer}>
               <View style={styles.resultItem}>
-                <Text style={styles.resultLabel}>Tam İsabet</Text>
+                <Text style={styles.resultLabel}>İsabet</Text>
                 <Text style={styles.bullText}>+{guess.bulls}</Text>
               </View>
               <View style={styles.resultItem}>
-                <Text style={styles.resultLabel}>Yanlış Yer</Text>
+                <Text style={styles.resultLabel}>Yer</Text>
                 <Text style={styles.cowText}>-{guess.cows}</Text>
+              </View>
+              <View style={styles.resultItem}>
+                <Text style={styles.resultLabel}>Tekrar</Text>
+                <Text style={styles.repeatText}>~{guess.repeats}</Text>
               </View>
             </View>
           </View>
         );
-      })}
-    </ScrollView>
+      }}
+    />
   );
 }
 
@@ -150,6 +168,22 @@ const styles = StyleSheet.create({
   digitMiss: {
     backgroundColor: colors.border,
   },
+  digitBullRepeat: {
+    backgroundColor: colors.bull,
+    overflow: 'hidden',
+  },
+  diagonalOverlay: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    backgroundColor: colors.repeat,
+    transform: [{ rotate: '45deg' }],
+    top: -19,
+    left: 9,
+  },
+  digitTextOverlay: {
+    position: 'absolute',
+  },
   digitText: {
     fontSize: 15,
     fontWeight: 'bold',
@@ -157,19 +191,19 @@ const styles = StyleSheet.create({
   },
   resultContainer: {
     flexDirection: 'row',
-    gap: 4,
+    gap: 3,
     flexShrink: 0,
-    marginLeft: 6,
+    marginLeft: 4,
   },
   resultItem: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 3,
     paddingVertical: 1,
     borderRadius: 5,
     alignItems: 'center',
-    minWidth: 36,
+    minWidth: 30,
   },
   resultLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: colors.textSecondary,
     lineHeight: 10,
   },
@@ -183,6 +217,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.cow,
+    lineHeight: 18,
+  },
+  repeatText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.repeat,
     lineHeight: 18,
   },
 });

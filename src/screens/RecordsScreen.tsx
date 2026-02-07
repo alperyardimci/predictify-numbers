@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -30,10 +30,6 @@ export function RecordsScreen() {
       loadRecords(activeTab);
     }, [activeTab])
   );
-
-  useEffect(() => {
-    loadRecords(activeTab);
-  }, [activeTab]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

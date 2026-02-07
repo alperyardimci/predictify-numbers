@@ -8,6 +8,7 @@ export const colors = {
   textSecondary: '#A0A0A0',
   bull: '#50C878',
   cow: '#FFD700',
+  repeat: '#B07CD8',
   error: '#FF6B6B',
   border: '#3A3A5C',
 };

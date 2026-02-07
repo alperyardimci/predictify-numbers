@@ -1,13 +1,14 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   SafeAreaView,
   Modal,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DigitSelector } from '../components/DigitSelector';
 import { colors, spacing, borderRadius } from '../constants/theme';
@@ -20,14 +21,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { dispatch } = useGame();
-  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
   const [showHowTo, setShowHowTo] = React.useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      forceUpdate();
-    }, [])
-  );
 
   const handleSelectDigits = (digits: number) => {
     const secretNumber = generateNumber(digits);
@@ -43,28 +37,32 @@ export function HomeScreen() {
           <Text style={styles.subtitle}>Numbers</Text>
           <Text style={styles.description}>
             Gizli sayıyı tahmin edin!{'\n'}
-            +: Doğru yerde  -: Yanlış yerde
+            +: Doğru yerde  -: Yanlış yerde  ~: Tekrarlayan
           </Text>
         </View>
 
         <DigitSelector onSelect={handleSelectDigits} />
 
         <View style={styles.bottomButtons}>
-          <TouchableOpacity
-            style={styles.howToButton}
+          <Pressable
+            style={({ pressed }) => [
+              styles.howToButton,
+              pressed && { opacity: 0.7 },
+            ]}
             onPress={() => setShowHowTo(true)}
-            activeOpacity={0.7}
           >
             <Text style={styles.howToButtonText}>Nasıl Oynanır?</Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
-            style={styles.recordsButton}
+          <Pressable
+            style={({ pressed }) => [
+              styles.recordsButton,
+              pressed && { opacity: 0.7 },
+            ]}
             onPress={() => navigation.navigate('Records')}
-            activeOpacity={0.7}
           >
             <Text style={styles.recordsButtonText}>Rekor Tablosu</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 
@@ -74,14 +72,14 @@ export function HomeScreen() {
         animationType="fade"
         onRequestClose={() => setShowHowTo(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowHowTo(false)}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>Nasıl Oynanır?</Text>
             <Text style={styles.modalText}>
               Bilgisayar gizli bir sayı seçer. Amacınız bu sayıyı en az denemede bulmak.
             </Text>
             <Text style={styles.modalText}>
-              Her tahminden sonra iki ipucu alırsınız:
+              Her tahminden sonra üç ipucu alırsınız:
             </Text>
             <Text style={styles.modalHint}>
               <Text style={styles.bullHighlight}>+1 Tam İsabet</Text>
@@ -91,18 +89,24 @@ export function HomeScreen() {
               <Text style={styles.cowHighlight}>-1 Yanlış Yerde</Text>
               {' → Rakam var ama yeri yanlış'}
             </Text>
+            <Text style={styles.modalHint}>
+              <Text style={styles.repeatHighlight}>~1 Tekrarlayan</Text>
+              {' → Rakam doğru yerde ama gizli sayıda tekrar ediyor'}
+            </Text>
             <Text style={styles.modalText}>
               İpuçlarını kullanarak gizli sayıyı bulun!
             </Text>
-            <TouchableOpacity
-              style={styles.modalCloseButton}
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalCloseButton,
+                pressed && { opacity: 0.7 },
+              ]}
               onPress={() => setShowHowTo(false)}
-              activeOpacity={0.7}
             >
               <Text style={styles.modalCloseText}>Anladım!</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+            </Pressable>
+          </Pressable>
+        </Pressable>
       </Modal>
     </SafeAreaView>
   );
@@ -181,6 +185,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     width: '100%',
+    maxWidth: 500,
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -210,6 +215,10 @@ const styles = StyleSheet.create({
   },
   cowHighlight: {
     color: colors.cow,
+    fontWeight: 'bold',
+  },
+  repeatHighlight: {
+    color: colors.repeat,
     fontWeight: 'bold',
   },
   modalCloseButton: {

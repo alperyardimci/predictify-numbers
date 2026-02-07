@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { getBestRecord } from '../utils/storage';
 import { Record } from '../types';
@@ -11,9 +12,11 @@ interface DigitSelectorProps {
 export function DigitSelector({ onSelect }: DigitSelectorProps) {
   const [bestRecords, setBestRecords] = useState<{ [key: number]: Record | null }>({});
 
-  useEffect(() => {
-    loadBestRecords();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadBestRecords();
+    }, [])
+  );
 
   const loadBestRecords = async () => {
     const records: { [key: number]: Record | null } = {};

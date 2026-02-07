@@ -20,12 +20,20 @@ export function GuessInput({ digits, onSubmit, disabled }: GuessInputProps) {
     Array(digits).fill('')
   );
   const [activeIndex, setActiveIndex] = useState(0);
+  const [warningText, setWarningText] = useState('');
   const shakeAnimation = useRef(new Animated.Value(0)).current;
+  const warningTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setCurrentGuess(Array(digits).fill(''));
     setActiveIndex(0);
   }, [digits]);
+
+  useEffect(() => {
+    return () => {
+      if (warningTimeout.current) clearTimeout(warningTimeout.current);
+    };
+  }, []);
 
   const shake = () => {
     Animated.sequence([
@@ -98,6 +106,9 @@ export function GuessInput({ digits, onSubmit, disabled }: GuessInputProps) {
     if (guess[0] === '0') {
       shake();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      if (warningTimeout.current) clearTimeout(warningTimeout.current);
+      setWarningText('Sayı 0 ile başlayamaz');
+      warningTimeout.current = setTimeout(() => setWarningText(''), 3000);
       return;
     }
 
@@ -107,7 +118,7 @@ export function GuessInput({ digits, onSubmit, disabled }: GuessInputProps) {
     setActiveIndex(0);
   };
 
-  const numpadKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'DEL', '0', 'OK'];
+  const numpadKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Sil', '0', 'Tahmin'];
 
   return (
     <View style={styles.container}>
@@ -133,18 +144,22 @@ export function GuessInput({ digits, onSubmit, disabled }: GuessInputProps) {
         ))}
       </Animated.View>
 
+      {warningText !== '' && (
+        <Text style={styles.warningText}>{warningText}</Text>
+      )}
+
       <View style={styles.numpad}>
         {numpadKeys.map((key) => (
           <TouchableOpacity
             key={key}
             style={[
               styles.numpadKey,
-              key === 'DEL' && styles.deleteKey,
-              key === 'OK' && styles.submitKey,
+              key === 'Sil' && styles.deleteKey,
+              key === 'Tahmin' && styles.submitKey,
             ]}
             onPress={() => {
-              if (key === 'DEL') handleDelete();
-              else if (key === 'OK') handleSubmit();
+              if (key === 'Sil') handleDelete();
+              else if (key === 'Tahmin') handleSubmit();
               else handleDigitPress(key);
             }}
             activeOpacity={0.7}
@@ -153,8 +168,8 @@ export function GuessInput({ digits, onSubmit, disabled }: GuessInputProps) {
             <Text
               style={[
                 styles.numpadKeyText,
-                key === 'DEL' && styles.deleteKeyText,
-                key === 'OK' && styles.submitKeyText,
+                key === 'Sil' && styles.deleteKeyText,
+                key === 'Tahmin' && styles.submitKeyText,
               ]}
             >
               {key}
@@ -197,6 +212,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text,
   },
+  warningText: {
+    fontSize: 13,
+    color: colors.error,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
   numpad: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -228,6 +250,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
   },
   submitKeyText: {
+    fontSize: 14,
     color: colors.background,
   },
 });

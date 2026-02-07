@@ -13,6 +13,7 @@ export function Timer({ startTime, isRunning, moveCount }: TimerProps) {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
+    setElapsed(0);
     if (!isRunning || startTime === 0) {
       return;
     }

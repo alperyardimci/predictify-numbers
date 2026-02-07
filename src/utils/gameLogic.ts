@@ -15,7 +15,7 @@ export function generateNumber(digits: number): string {
 export function checkGuess(
   secret: string,
   guess: string
-): { bulls: number; cows: number } {
+): { bulls: number; cows: number; repeats: number } {
   let bulls = 0;
   let cows = 0;
 
@@ -48,14 +48,28 @@ export function checkGuess(
     }
   }
 
-  return { bulls, cows };
+  // Count repeats: bull positions where the same digit appears elsewhere in secret
+  // but that other position is NOT also a bull (i.e. still undiscovered)
+  let repeats = 0;
+  for (let i = 0; i < guessArr.length; i++) {
+    if (guessArr[i] === secretArr[i]) {
+      for (let j = 0; j < secretArr.length; j++) {
+        if (j !== i && secretArr[j] === secretArr[i] && guessArr[j] !== secretArr[j]) {
+          repeats++;
+          break;
+        }
+      }
+    }
+  }
+
+  return { bulls, cows, repeats };
 }
 
 export function getDigitStatuses(
   secret: string,
   guess: string
-): ('bull' | 'cow' | 'miss')[] {
-  const statuses: ('bull' | 'cow' | 'miss')[] = new Array(guess.length).fill('miss');
+): ('bull' | 'cow' | 'miss' | 'bull-repeat')[] {
+  const statuses: ('bull' | 'cow' | 'miss' | 'bull-repeat')[] = new Array(guess.length).fill('miss');
   const secretUsed = new Array(secret.length).fill(false);
   const guessUsed = new Array(guess.length).fill(false);
 
@@ -79,6 +93,19 @@ export function getDigitStatuses(
         statuses[i] = 'cow';
         secretUsed[j] = true;
         break;
+      }
+    }
+  }
+
+  // Third pass: mark bull-repeat (bull digit that appears elsewhere in secret
+  // but that other position is NOT also a bull)
+  for (let i = 0; i < guess.length; i++) {
+    if (statuses[i] === 'bull') {
+      for (let j = 0; j < secret.length; j++) {
+        if (j !== i && secret[j] === secret[i] && guess[j] !== secret[j]) {
+          statuses[i] = 'bull-repeat';
+          break;
+        }
       }
     }
   }

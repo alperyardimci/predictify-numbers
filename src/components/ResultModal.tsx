@@ -75,6 +75,8 @@ export function ResultModal({
       scaleAnim.setValue(0);
       confettiAnims.forEach((anim) => {
         anim.translateY.setValue(-100);
+        anim.translateX.setValue(Math.random() * 300 - 150);
+        anim.rotate.setValue(0);
         anim.opacity.setValue(1);
       });
     }

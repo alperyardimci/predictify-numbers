@@ -2,6 +2,7 @@ export interface Guess {
   value: string;
   bulls: number;
   cows: number;
+  repeats: number;
 }
 
 export interface GameState {

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   Switch,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -52,6 +53,7 @@ export function GameScreen() {
         value: guess,
         bulls: result.bulls,
         cows: result.cows,
+        repeats: result.repeats,
       },
     });
 
@@ -82,10 +84,25 @@ export function GameScreen() {
     dispatch({ type: 'START_GAME', digits: state.digits, secretNumber });
   };
 
-  const handleGoHome = () => {
+  const confirmAndGoHome = () => {
     setShowResult(false);
     dispatch({ type: 'RESET_GAME' });
     navigation.navigate('Home');
+  };
+
+  const handleGoHome = () => {
+    if (state.gameStatus === 'playing' && state.moveCount > 0) {
+      Alert.alert(
+        'Oyundan Çık',
+        'Oyun ilerlemeniz kaybolacak. Emin misiniz?',
+        [
+          { text: 'İptal', style: 'cancel' },
+          { text: 'Çık', style: 'destructive', onPress: confirmAndGoHome },
+        ],
+      );
+    } else {
+      confirmAndGoHome();
+    }
   };
 
   return (
