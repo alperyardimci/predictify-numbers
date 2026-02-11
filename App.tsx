@@ -6,6 +6,8 @@ import { GameProvider } from './src/context/GameContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { GameScreen } from './src/screens/GameScreen';
 import { RecordsScreen } from './src/screens/RecordsScreen';
+import { OnlineLobbyScreen } from './src/screens/OnlineLobbyScreen';
+import { OnlineGameScreen } from './src/screens/OnlineGameScreen';
 import { RootStackParamList } from './src/types';
 import { colors } from './src/constants/theme';
 
@@ -26,6 +28,8 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Game" component={GameScreen} />
           <Stack.Screen name="Records" component={RecordsScreen} />
+          <Stack.Screen name="OnlineLobby" component={OnlineLobbyScreen} />
+          <Stack.Screen name="OnlineGame" component={OnlineGameScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </GameProvider>

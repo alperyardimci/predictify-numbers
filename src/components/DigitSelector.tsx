@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { getBestRecord } from '../utils/storage';
@@ -29,78 +29,68 @@ export function DigitSelector({ onSelect }: DigitSelectorProps) {
   const digits = [2, 3, 4, 5];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Hane Seçin</Text>
-      <View style={styles.buttonsContainer}>
-        {digits.map((digit) => (
-          <TouchableOpacity
-            key={digit}
-            style={styles.button}
-            onPress={() => onSelect(digit)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.digitText}>{digit}</Text>
-            <Text style={styles.labelText}>Hane</Text>
-            {bestRecords[digit] && (
-              <View style={styles.recordContainer}>
-                <Text style={styles.recordText}>
-                  En iyi: {bestRecords[digit]!.moves} hamle
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
+    <View style={styles.row}>
+      {digits.map((digit) => (
+        <Pressable
+          key={digit}
+          style={({ pressed }) => [
+            styles.button,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={() => onSelect(digit)}
+        >
+          <Text style={styles.digitText}>{digit}</Text>
+          <Text style={styles.labelText}>Hane</Text>
+          {bestRecords[digit] ? (
+            <Text style={styles.recordText}>
+              {bestRecords[digit]!.moves} hamle
+            </Text>
+          ) : (
+            <Text style={styles.noRecord}>--</Text>
+          )}
+        </Pressable>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: spacing.lg,
-  },
-  buttonsContainer: {
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: spacing.md,
+    justifyContent: 'space-between',
+    gap: spacing.sm,
   },
   button: {
-    width: 140,
-    height: 140,
+    flex: 1,
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
-    justifyContent: 'center',
+    borderRadius: borderRadius.md,
     alignItems: 'center',
-    borderWidth: 2,
+    paddingVertical: spacing.md,
+    borderWidth: 1.5,
     borderColor: colors.primary,
   },
+  buttonPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.96 }],
+  },
   digitText: {
-    fontSize: 48,
+    fontSize: 32,
     fontWeight: 'bold',
     color: colors.primary,
   },
   labelText: {
-    fontSize: 16,
+    fontSize: 12,
     color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  recordContainer: {
-    marginTop: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.sm,
+    marginTop: 2,
   },
   recordText: {
-    fontSize: 12,
+    fontSize: 10,
     color: colors.secondary,
+    marginTop: spacing.xs,
+  },
+  noRecord: {
+    fontSize: 10,
+    color: colors.border,
+    marginTop: spacing.xs,
   },
 });

@@ -1,27 +1,36 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   Pressable,
   StyleSheet,
   SafeAreaView,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DigitSelector } from '../components/DigitSelector';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { useGame } from '../context/GameContext';
 import { generateNumber } from '../utils/gameLogic';
+import { getWinStreak } from '../utils/storage';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { dispatch } = useGame();
-  const [showHowTo, setShowHowTo] = React.useState(false);
+  const [showHowTo, setShowHowTo] = useState(false);
+  const [winStreak, setWinStreak] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      getWinStreak().then(setWinStreak);
+    }, [])
+  );
 
   const handleSelectDigits = (digits: number) => {
     const secretNumber = generateNumber(digits);
@@ -31,40 +40,97 @@ export function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Predictify</Text>
-          <Text style={styles.subtitle}>Numbers</Text>
-          <Text style={styles.description}>
-            Gizli sayıyı tahmin edin!{'\n'}
-            +: Doğru yerde  -: Yanlış yerde  ~: Tekrarlayan
-          </Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Brand */}
+        <View style={styles.brand}>
+          <Text style={styles.brandTitle}>Predictify</Text>
+          <Text style={styles.brandSub}>Numbers</Text>
         </View>
 
-        <DigitSelector onSelect={handleSelectDigits} />
+        {/* Solo Mode Card */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionDot} />
+            <Text style={styles.sectionTitle}>Tek Kişilik</Text>
+          </View>
+          <Text style={styles.sectionDesc}>
+            Bilgisayara karşı oyna. Hane seçerek başla.
+          </Text>
+          <DigitSelector onSelect={handleSelectDigits} />
+        </View>
 
-        <View style={styles.bottomButtons}>
+        {/* Online Mode Card */}
+        <View style={[styles.sectionCard, styles.onlineCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionDot, styles.onlineDot]} />
+            <Text style={[styles.sectionTitle, styles.onlineTitle]}>Online Mod</Text>
+          </View>
+          <Text style={styles.sectionDesc}>
+            Gerçek rakibe karşı 6 haneli sayıyı bul.
+          </Text>
+          {winStreak > 0 && (
+            <View style={styles.streakRow}>
+              <Text style={styles.streakFire}>🔥</Text>
+              <Text style={styles.streakCount}>{winStreak}</Text>
+              <Text style={styles.streakLabel}>galibiyet serisi</Text>
+            </View>
+          )}
           <Pressable
             style={({ pressed }) => [
-              styles.howToButton,
+              styles.onlineButton,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => navigation.navigate('OnlineLobby')}
+          >
+            <Text style={styles.onlineButtonText}>Rakip Bul</Text>
+          </Pressable>
+        </View>
+
+        {/* Hint Bar */}
+        <View style={styles.hintBar}>
+          <View style={styles.hintItem}>
+            <Text style={styles.hintSymbol}>+</Text>
+            <Text style={styles.hintLabel}>Doğru yer</Text>
+          </View>
+          <View style={styles.hintDivider} />
+          <View style={styles.hintItem}>
+            <Text style={[styles.hintSymbol, { color: colors.cow }]}>-</Text>
+            <Text style={styles.hintLabel}>Yanlış yer</Text>
+          </View>
+          <View style={styles.hintDivider} />
+          <View style={styles.hintItem}>
+            <Text style={[styles.hintSymbol, { color: colors.repeat }]}>~</Text>
+            <Text style={styles.hintLabel}>Tekrarlayan</Text>
+          </View>
+        </View>
+
+        {/* Bottom Buttons */}
+        <View style={styles.bottomRow}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.bottomButton,
               pressed && { opacity: 0.7 },
             ]}
             onPress={() => setShowHowTo(true)}
           >
-            <Text style={styles.howToButtonText}>Nasıl Oynanır?</Text>
+            <Text style={styles.bottomButtonText}>Nasıl Oynanır?</Text>
           </Pressable>
-
           <Pressable
             style={({ pressed }) => [
-              styles.recordsButton,
+              styles.bottomButton,
               pressed && { opacity: 0.7 },
             ]}
             onPress={() => navigation.navigate('Records')}
           >
-            <Text style={styles.recordsButtonText}>Rekor Tablosu</Text>
+            <Text style={styles.bottomButtonText}>Rekor Tablosu</Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
 
       <Modal
         visible={showHowTo}
@@ -117,50 +183,151 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  scrollContent: {
     padding: spacing.lg,
-    justifyContent: 'space-between',
+    paddingTop: spacing.md,
+    gap: spacing.md,
   },
-  header: {
+
+  // Brand
+  brand: {
     alignItems: 'center',
-    marginTop: spacing.xl,
+    marginBottom: spacing.xs,
   },
-  title: {
-    fontSize: 48,
-    fontWeight: 'bold',
+  brandTitle: {
+    fontSize: 34,
+    fontWeight: '800',
     color: colors.primary,
+    letterSpacing: 1,
   },
-  subtitle: {
-    fontSize: 32,
-    fontWeight: '300',
-    color: colors.text,
-    marginTop: -spacing.sm,
-  },
-  description: {
+  brandSub: {
     fontSize: 16,
+    fontWeight: '300',
     color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.lg,
-    lineHeight: 24,
+    marginTop: -4,
+    letterSpacing: 4,
   },
-  bottomButtons: {
+
+  // Section Cards
+  sectionCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  onlineCard: {
+    borderColor: colors.secondary + '40',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  howToButton: {
-    backgroundColor: 'transparent',
+  sectionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
+  onlineDot: {
+    backgroundColor: colors.secondary,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  onlineTitle: {
+    color: colors.secondary,
+  },
+  sectionDesc: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+
+  // Streak
+  streakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    marginBottom: spacing.md,
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+  },
+  streakFire: {
+    fontSize: 18,
+  },
+  streakCount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.cow,
+  },
+  streakLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+
+  // Online button
+  onlineButton: {
+    backgroundColor: colors.secondary,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
     alignItems: 'center',
+  },
+  onlineButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.background,
+  },
+
+  // Hint Bar
+  hintBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.border,
   },
-  howToButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
+  hintItem: {
+    flex: 1,
+    alignItems: 'center',
   },
-  recordsButton: {
+  hintSymbol: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.bull,
+  },
+  hintLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  hintDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: colors.border,
+  },
+
+  // Bottom Buttons
+  bottomRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  bottomButton: {
+    flex: 1,
     backgroundColor: colors.card,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
@@ -168,11 +335,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  recordsButtonText: {
-    fontSize: 18,
+  bottomButtonText: {
+    fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: colors.textSecondary,
   },
+
+  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',

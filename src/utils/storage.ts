@@ -55,3 +55,30 @@ export async function clearAllRecords(): Promise<void> {
     console.error('Error clearing records:', error);
   }
 }
+
+const WIN_STREAK_KEY = 'online_win_streak';
+
+export async function getWinStreak(): Promise<number> {
+  try {
+    const val = await AsyncStorage.getItem(WIN_STREAK_KEY);
+    return val ? parseInt(val, 10) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function updateWinStreak(won: boolean): Promise<number> {
+  try {
+    if (won) {
+      const current = await getWinStreak();
+      const next = current + 1;
+      await AsyncStorage.setItem(WIN_STREAK_KEY, String(next));
+      return next;
+    } else {
+      await AsyncStorage.setItem(WIN_STREAK_KEY, '0');
+      return 0;
+    }
+  } catch {
+    return 0;
+  }
+}
