@@ -61,9 +61,12 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
                 <View style={styles.digitRow}>
                   {guess.value.split('').map((digit, dIndex) => {
                     const status = digitStatuses[dIndex];
-                    if (status === 'bull-repeat') {
+                    if (status === 'bull-repeat' || status === 'cow-repeat') {
                       return (
-                        <View key={dIndex} style={[styles.digitBox, styles.digitBullRepeat]}>
+                        <View key={dIndex} style={[
+                          styles.digitBox,
+                          status === 'bull-repeat' ? styles.digitBullRepeat : styles.digitCowRepeat,
+                        ]}>
                           <View style={styles.diagonalOverlay} />
                           <Text style={[styles.digitText, styles.digitTextOverlay]}>{digit}</Text>
                         </View>
@@ -201,6 +204,10 @@ const styles = StyleSheet.create({
   },
   digitBullRepeat: {
     backgroundColor: colors.bull,
+    overflow: 'hidden',
+  },
+  digitCowRepeat: {
+    backgroundColor: colors.cow,
     overflow: 'hidden',
   },
   diagonalOverlay: {

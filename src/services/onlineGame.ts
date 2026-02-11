@@ -42,8 +42,8 @@ export async function submitCoinFlipPick(
   const gameRef = ref(database, `games/${gameId}`);
 
   await runTransaction(gameRef, (game: any) => {
-    if (!game) return game;
-    if (game.status !== 'coin_flip') return;
+    if (!game) return;          // abort: node missing
+    if (game.status !== 'coin_flip') return; // abort: already resolved
 
     // Write our pick
     const pickField = mySlot === 'player1' ? 'player1Pick' : 'player2Pick';
