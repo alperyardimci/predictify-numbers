@@ -23,6 +23,7 @@ export function checkGuess(
   const guessArr = guess.split('');
   const secretUsed = new Array(secret.length).fill(false);
   const guessUsed = new Array(guess.length).fill(false);
+  const cowMatch = new Array(guess.length).fill(-1);
 
   // First pass: count bulls (exact matches)
   for (let i = 0; i < secretArr.length; i++) {
@@ -43,35 +44,49 @@ export function checkGuess(
       if (guessArr[i] === secretArr[j]) {
         cows++;
         secretUsed[j] = true;
+        cowMatch[i] = j;
         break;
       }
     }
   }
 
-  // Count repeats: bull positions where the same digit appears elsewhere in secret
-  // but that other position is NOT also a bull (i.e. still undiscovered)
+  // Count repeats: matched digits (bull or cow) where the secret has MORE
+  // occurrences of that digit than the guess has matched (bull+cow).
+  // This means there are still undiscovered occurrences in the secret.
   let repeats = 0;
+
   for (let i = 0; i < guessArr.length; i++) {
-    if (guessArr[i] === secretArr[i]) {
-      for (let j = 0; j < secretArr.length; j++) {
-        if (j !== i && secretArr[j] === secretArr[i] && guessArr[j] !== secretArr[j]) {
-          repeats++;
-          break;
-        }
+    const isBull = guessArr[i] === secretArr[i];
+    const isCow = cowMatch[i] >= 0;
+    if (!isBull && !isCow) continue;
+
+    const digit = guessArr[i];
+    let totalInSecret = 0;
+    let matchedInSecret = 0;
+    for (let j = 0; j < secretArr.length; j++) {
+      if (secretArr[j] === digit) {
+        totalInSecret++;
+        if (secretUsed[j]) matchedInSecret++;
       }
+    }
+    if (matchedInSecret < totalInSecret) {
+      repeats++;
     }
   }
 
   return { bulls, cows, repeats };
 }
 
+export type DigitStatus = 'bull' | 'cow' | 'miss' | 'bull-repeat' | 'cow-repeat';
+
 export function getDigitStatuses(
   secret: string,
   guess: string
-): ('bull' | 'cow' | 'miss' | 'bull-repeat')[] {
-  const statuses: ('bull' | 'cow' | 'miss' | 'bull-repeat')[] = new Array(guess.length).fill('miss');
+): DigitStatus[] {
+  const statuses: DigitStatus[] = new Array(guess.length).fill('miss');
   const secretUsed = new Array(secret.length).fill(false);
   const guessUsed = new Array(guess.length).fill(false);
+  const cowMatch = new Array(guess.length).fill(-1);
 
   // First pass: mark bulls (exact matches)
   for (let i = 0; i < guess.length; i++) {
@@ -82,7 +97,7 @@ export function getDigitStatuses(
     }
   }
 
-  // Second pass: mark cows (wrong position)
+  // Second pass: mark cows (wrong position), track which secret position matched
   for (let i = 0; i < guess.length; i++) {
     if (guessUsed[i]) continue;
 
@@ -92,21 +107,29 @@ export function getDigitStatuses(
       if (guess[i] === secret[j]) {
         statuses[i] = 'cow';
         secretUsed[j] = true;
+        cowMatch[i] = j;
         break;
       }
     }
   }
 
-  // Third pass: mark bull-repeat (bull digit that appears elsewhere in secret
-  // but that other position is NOT also a bull)
+  // Third pass: mark repeats for both bulls and cows
+  // A repeat means the secret has MORE occurrences of this digit than
+  // the guess has matched (bull+cow) — there are still undiscovered ones.
   for (let i = 0; i < guess.length; i++) {
-    if (statuses[i] === 'bull') {
-      for (let j = 0; j < secret.length; j++) {
-        if (j !== i && secret[j] === secret[i] && guess[j] !== secret[j]) {
-          statuses[i] = 'bull-repeat';
-          break;
-        }
+    if (statuses[i] !== 'bull' && statuses[i] !== 'cow') continue;
+
+    const digit = guess[i];
+    let totalInSecret = 0;
+    let matchedInSecret = 0;
+    for (let j = 0; j < secret.length; j++) {
+      if (secret[j] === digit) {
+        totalInSecret++;
+        if (secretUsed[j]) matchedInSecret++;
       }
+    }
+    if (matchedInSecret < totalInSecret) {
+      statuses[i] = statuses[i] === 'bull' ? 'bull-repeat' : 'cow-repeat';
     }
   }
 
