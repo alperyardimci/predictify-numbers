@@ -31,6 +31,7 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
       showsVerticalScrollIndicator={false}
       renderItem={({ item: guess, index }) => {
         const isLatest = index === 0;
+        const hasOwner = !!guess.owner;
         const digitStatuses = assistedMode && secretNumber
           ? getDigitStatuses(secretNumber, guess.value)
           : null;
@@ -39,10 +40,20 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
           <View
             style={[
               styles.guessRow,
-              isLatest && styles.latestGuessRow,
+              isLatest && !hasOwner && styles.latestGuessRow,
+              hasOwner && guess.owner === 'me' && styles.myGuessRow,
+              hasOwner && guess.owner === 'opponent' && styles.opponentGuessRow,
             ]}
           >
             <View style={styles.indexContainer}>
+              {hasOwner && (
+                <Text style={[
+                  styles.ownerBadge,
+                  guess.owner === 'me' ? styles.myBadge : styles.opponentBadge,
+                ]}>
+                  {guess.owner === 'me' ? 'S' : 'R'}
+                </Text>
+              )}
               <Text style={styles.indexText}>#{guesses.length - index}</Text>
             </View>
             <View style={styles.guessContainer}>
@@ -133,7 +144,27 @@ const styles = StyleSheet.create({
     borderLeftColor: colors.primary,
   },
   indexContainer: {
-    width: 24,
+    width: 28,
+    alignItems: 'center',
+  },
+  ownerBadge: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    lineHeight: 12,
+  },
+  myBadge: {
+    color: colors.primary,
+  },
+  opponentBadge: {
+    color: colors.error,
+  },
+  myGuessRow: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+  },
+  opponentGuessRow: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.error,
   },
   indexText: {
     fontSize: 11,

@@ -3,6 +3,7 @@ export interface Guess {
   bulls: number;
   cows: number;
   repeats: number;
+  owner?: 'me' | 'opponent';
 }
 
 export interface GameState {
@@ -26,6 +27,8 @@ export type RootStackParamList = {
   Home: undefined;
   Game: { digits: number };
   Records: undefined;
+  OnlineLobby: undefined;
+  OnlineGame: { gameId: string; mySlot: 'player1' | 'player2' };
 };
 
 export type GameAction =

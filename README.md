@@ -1,144 +1,119 @@
 # Predictify Numbers
 
+[![Platform](https://img.shields.io/badge/Platform-iOS-000000?logo=apple)](https://apps.apple.com/app/predictify-numbers/id6742519498)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo)](https://expo.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Firebase](https://img.shields.io/badge/Firebase-Realtime%20DB-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-lightgrey.svg)]()
-[![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020.svg)](https://expo.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg)](https://www.typescriptlang.org)
 
-A number guessing game based on the classic **Bulls and Cows** mechanic, built with React Native and Expo.
+A real-time multiplayer number guessing game for iOS, built with React Native. Players try to crack a secret number using **Bulls & Cows** logic — with both single-player and online PvP modes.
 
-## Game Rules
-
-1. Select the number of digits (2-5)
-2. Try to guess the secret number
-3. After each guess, you'll see:
-   - **+X (Bulls)**: X digits are correct and in the right position
-   - **-Y (Cows)**: Y digits are correct but in the wrong position
-4. Find the secret number in as few moves as possible!
+<p align="center">
+  <img src="screenshots/01_home.png" width="200" />
+  <img src="screenshots/04_game_normal.png" width="200" />
+  <img src="screenshots/05_game_assisted.png" width="200" />
+</p>
 
 ## Features
 
-- **Multiple Difficulty Levels** - 2, 3, 4, and 5 digit game modes
-- **Real-time Timer** - Track your solving speed
-- **Move Counter** - Count your guesses
-- **Haptic Feedback** - Tactile response on button presses
-- **Animations** - Shake on invalid input, confetti on win
-- **Persistent Leaderboard** - Top 10 records per difficulty with medals
-- **Dark Theme** - Eye-friendly dark UI
-- **Fully Offline** - No internet connection required
+### Single Player
+- **4 difficulty levels** — 2, 3, 4, and 5 digit modes
+- **Assisted mode** — color-coded digit feedback (bull / cow / miss / repeat)
+- **Persistent leaderboard** — top 10 records per difficulty, stored locally
+- **Real-time timer** and move counter
+
+### Online Multiplayer
+- **Real-time PvP** — find and play against a random opponent
+- **Coin flip** — both players pick a digit, closest to system digit goes first
+- **Turn-based gameplay** — 30-second turn timer with auto-skip
+- **Assisted / unassisted modes** — players are matched by mode preference
+- **Win streak tracker** — consecutive wins displayed on home screen with 🔥
+- **Forfeit & disconnect handling** — quit button with confirmation, 30s disconnect timeout
+
+### UI / UX
+- **Dark theme** throughout
+- **Haptic feedback** on every interaction
+- **Animations** — shake on invalid input, pulsing search indicator, flashing timer
+- **Turkish UI** — fully localized
 
 ## Tech Stack
 
-| Technology | Purpose |
-|-----------|---------|
-| [React Native](https://reactnative.dev/) | Cross-platform mobile framework |
-| [Expo](https://expo.dev/) | Development & build toolchain |
-| [TypeScript](https://www.typescriptlang.org/) | Type-safe JavaScript |
-| [React Navigation](https://reactnavigation.org/) | Screen navigation |
-| [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) | Local data persistence |
-| [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/) | Haptic feedback |
+| Layer | Technology |
+|-------|-----------|
+| Framework | React Native 0.81 + Expo SDK 54 |
+| Language | TypeScript 5.9 |
+| Navigation | React Navigation (native-stack) |
+| State | `useReducer` + Context (offline), custom hooks (online) |
+| Backend | Firebase Realtime Database |
+| Storage | AsyncStorage (records, win streak, player identity) |
+| Build | EAS Build + EAS Submit |
+
+## Architecture
+
+```
+src/
+├── screens/
+│   ├── HomeScreen.tsx          # Mode selection (solo / online)
+│   ├── GameScreen.tsx          # Single-player game
+│   ├── OnlineLobbyScreen.tsx   # Matchmaking + mode toggle
+│   ├── OnlineGameScreen.tsx    # Online PvP game
+│   └── RecordsScreen.tsx       # Leaderboard
+├── components/
+│   ├── GuessInput.tsx          # Custom numpad
+│   ├── GuessHistory.tsx        # Guess list with assisted mode colors
+│   ├── DigitSelector.tsx       # Difficulty picker
+│   ├── CoinFlipView.tsx        # Coin flip UI
+│   ├── OnlineInfoBar.tsx       # Turn indicator + timer + quit
+│   ├── OnlineResultModal.tsx   # Win/lose/forfeit/disconnect modal
+│   └── DisconnectBanner.tsx    # Opponent disconnect warning
+├── hooks/
+│   ├── useMatchmaking.ts       # Queue join/leave/poll state machine
+│   └── useOnlineGame.ts        # Game listener, heartbeat, turn timer
+├── services/
+│   ├── firebase.ts             # Firebase init
+│   ├── matchmaking.ts          # Atomic queue matching (transactions)
+│   ├── onlineGame.ts           # Guess submit, coin flip, forfeit, skip
+│   └── playerIdentity.ts       # Anonymous UUID via AsyncStorage
+├── utils/
+│   ├── gameLogic.ts            # Number generation, guess evaluation
+│   ├── coinFlip.ts             # First-turn computation
+│   └── storage.ts              # Records + win streak persistence
+├── context/
+│   └── GameContext.tsx          # Offline game state (useReducer)
+├── types/
+│   ├── index.ts                # Core types + navigation params
+│   └── online.ts               # Online multiplayer types
+└── constants/
+    └── theme.ts                # Colors, spacing, border radius
+```
+
+## Online Multiplayer Flow
+
+```
+HomeScreen → OnlineLobby → Matchmaking Queue
+                               ↓
+                          Coin Flip (both pick 0-9)
+                               ↓
+                      Turn-based Guessing (6 digits)
+                               ↓
+                    Win (6 bulls) / Forfeit / Disconnect
+```
+
+**Race condition prevention:** Matchmaking uses a Firebase transaction on the entire queue node to atomically claim both entries. Coin flip resolution also uses a transaction to prevent conflicting `firstTurn` writes when picks are equidistant.
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-- Expo CLI
-- iOS Simulator or Android Emulator (or Expo Go app)
-
-### Installation
-
 ```bash
-# Clone the repository
 git clone https://github.com/alperyardimci/predictify-numbers.git
-
-# Navigate to the project
 cd predictify-numbers
-
-# Install dependencies
 npm install
-
-# Start the development server
 npx expo start
 ```
 
-### Running on Simulator
-
-```bash
-# iOS
-npx expo start --ios
-
-# Android
-npx expo start --android
-
-# Web
-npx expo start --web
-```
-
-## Project Structure
-
-```
-PredictifyNumbers/
-├── App.tsx                    # Root navigation container
-├── index.ts                   # Entry point
-├── app.json                   # Expo configuration
-├── eas.json                   # EAS Build configuration
-├── src/
-│   ├── screens/
-│   │   ├── HomeScreen.tsx     # Main menu & difficulty selection
-│   │   ├── GameScreen.tsx     # Active gameplay
-│   │   └── RecordsScreen.tsx  # Leaderboard
-│   ├── components/
-│   │   ├── DigitSelector.tsx  # Difficulty selector
-│   │   ├── GuessInput.tsx     # Number input keypad
-│   │   ├── GuessHistory.tsx   # Past guesses display
-│   │   ├── ResultModal.tsx    # Win modal with confetti
-│   │   └── Timer.tsx          # Timer & move counter
-│   ├── context/
-│   │   └── GameContext.tsx    # Game state management
-│   ├── utils/
-│   │   ├── gameLogic.ts      # Number generation & evaluation
-│   │   └── storage.ts        # AsyncStorage wrapper
-│   ├── types/
-│   │   └── index.ts          # TypeScript definitions
-│   └── constants/
-│       └── theme.ts          # Colors, spacing, typography
-└── assets/                    # App icons & splash screens
-```
-
-## Building for Production
-
-```bash
-# Install EAS CLI
-npm install -g eas-cli
-
-# Log in to Expo
-eas login
-
-# Build for iOS
-eas build --platform ios
-
-# Build for Android
-eas build --platform android
-
-# Submit to App Store
-eas submit --platform ios
-
-# Submit to Google Play
-eas submit --platform android
-```
-
-## Documentation
-
-- [Privacy Policy](PRIVACY_POLICY.md)
-- [Support](SUPPORT.md)
-- [Changelog](CHANGELOG.md)
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE) for details.
 
 ## Author
 
-**Alper Yardimci** - [GitHub](https://github.com/alperyardimci)
+**Alper Yardimci** — [GitHub](https://github.com/alperyardimci)
