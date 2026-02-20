@@ -4,7 +4,6 @@ export interface Guess {
   cows: number;
   repeats: number;
   owner?: 'me' | 'opponent';
-  digitStatuses?: import('../utils/gameLogic').DigitStatus[];
 }
 
 export interface GameState {

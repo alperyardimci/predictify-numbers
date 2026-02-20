@@ -34,8 +34,8 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
       renderItem={({ item: guess, index }) => {
         const isLatest = index === 0;
         const hasOwner = !!guess.owner;
-        const digitStatuses = assistedMode
-          ? (guess.digitStatuses || (secretNumber ? getDigitStatuses(secretNumber, guess.value) : null))
+        const digitStatuses = assistedMode && secretNumber
+          ? getDigitStatuses(secretNumber, guess.value)
           : null;
 
         return (

@@ -1,59 +1,47 @@
 {
   "rules": {
-    "gameSecrets": {
-      ".read": false,
-      ".write": false
-    },
-    "games": {
-      "$gameId": {
-        ".read": "auth != null && (root.child('games/'+$gameId+'/player1/id').val() === auth.uid || root.child('games/'+$gameId+'/player2/id').val() === auth.uid)",
-        ".write": false
-      }
-    },
     "matchmaking": {
-      ".read": "auth != null",
-      ".write": false
+      ".read": true,
+      ".write": true
     },
     "playerNotifications": {
-      "$playerId": {
-        ".read": "auth != null && auth.uid === $playerId",
-        ".write": false
-      }
+      ".read": true,
+      ".write": true
+    },
+    "games": {
+      ".read": true,
+      ".write": true
     },
     "leagues": {
-      ".read": "auth != null",
-      ".write": false
+      ".read": true,
+      ".write": true
     },
     "leagueMembers": {
-      ".read": "auth != null",
-      ".write": false
+      ".read": true,
+      ".write": true
     },
     "playerLeagues": {
-      "$playerId": {
-        ".read": "auth != null && auth.uid === $playerId"
-      },
-      ".write": false
+      ".read": true,
+      ".write": true
     },
     "leagueCodes": {
-      ".read": false,
-      ".write": false
+      ".read": true,
+      ".write": true
     },
     "leagueMatches": {
-      ".read": "auth != null",
-      ".write": false,
+      ".read": true,
+      ".write": true,
       "$leagueId": {
         ".indexOn": ["timestamp"]
       }
     },
     "challenges": {
-      ".read": "auth != null",
-      ".write": false
+      ".read": true,
+      ".write": true
     },
     "playerChallenges": {
-      "$playerId": {
-        ".read": "auth != null && auth.uid === $playerId"
-      },
-      ".write": false
+      ".read": true,
+      ".write": true
     }
   }
 }

@@ -46,7 +46,7 @@ function reducer(state: OnlineGameState, action: OnlineGameAction): OnlineGameSt
       const mySlot = action.mySlot;
       const opponentSlot: PlayerSlot = mySlot === 'player1' ? 'player2' : 'player1';
 
-      // Parse my guesses from the room (use stored digitStatuses)
+      // Parse my guesses from the room
       const myGuessesObj = room.guesses?.[mySlot] || {};
       const myGuesses: Guess[] = Object.values(myGuessesObj)
         .sort((a: any, b: any) => b.index - a.index)
@@ -55,7 +55,6 @@ function reducer(state: OnlineGameState, action: OnlineGameAction): OnlineGameSt
           bulls: g.bulls,
           cows: g.cows,
           repeats: g.repeats,
-          digitStatuses: g.digitStatuses || undefined,
         }));
 
       const opponentGuessesObj = room.guesses?.[opponentSlot] || {};
@@ -67,7 +66,6 @@ function reducer(state: OnlineGameState, action: OnlineGameAction): OnlineGameSt
           bulls: g.bulls,
           cows: g.cows,
           repeats: g.repeats,
-          digitStatuses: g.digitStatuses || undefined,
         }));
 
       const isMyTurn = room.status === 'playing' && room.turns.currentTurn === mySlot;
@@ -79,12 +77,14 @@ function reducer(state: OnlineGameState, action: OnlineGameAction): OnlineGameSt
         if (myPick == null) {
           phase = 'coin_flip';
         } else {
-          phase = 'picking';
+          phase = 'picking'; // Waiting for opponent to pick
         }
       } else if (room.status === 'playing') {
+        // Show coin result briefly before switching to playing
         if (state.phase === 'picking' || state.phase === 'coin_flip') {
           phase = 'coin_result';
         } else if (state.phase === 'coin_result') {
+          // Stay in coin_result until timer moves it
           phase = 'coin_result';
         } else {
           phase = 'playing';
@@ -143,11 +143,11 @@ export function useOnlineGame(gameId: string, mySlot: PlayerSlot) {
       dispatch({ type: 'ROOM_UPDATE', room, mySlot });
     });
 
-    // Start heartbeat (every 10 seconds) — no mySlot param, server determines slot
-    updateHeartbeat(gameId).catch(() => {});
+    // Start heartbeat (every 10 seconds)
+    updateHeartbeat(gameId, mySlot).catch(() => {});
     heartbeatRef.current = setInterval(() => {
       if (mountedRef.current) {
-        updateHeartbeat(gameId).catch(() => {});
+        updateHeartbeat(gameId, mySlot).catch(() => {});
       }
     }, 10000);
 
@@ -161,7 +161,7 @@ export function useOnlineGame(gameId: string, mySlot: PlayerSlot) {
     };
   }, [gameId, mySlot]);
 
-  // Handle coin_result -> playing transition
+  // Handle coin_result → playing transition
   useEffect(() => {
     if (state.phase === 'coin_result') {
       coinResultTimerRef.current = setTimeout(() => {
@@ -196,7 +196,8 @@ export function useOnlineGame(gameId: string, mySlot: PlayerSlot) {
       const elapsed = Date.now() - opponentLastSeen;
 
       if (elapsed > 30000) {
-        claimDisconnectWin(gameId).catch(() => {});
+        // Claim disconnect win
+        claimDisconnectWin(gameId, mySlot).catch(() => {});
         dispatch({ type: 'SET_DISCONNECT_COUNTDOWN', seconds: 0 });
       } else if (elapsed > 15000) {
         const remaining = Math.ceil((30000 - elapsed) / 1000);
@@ -215,13 +216,13 @@ export function useOnlineGame(gameId: string, mySlot: PlayerSlot) {
   useEffect(() => {
     const handleAppStateChange = (nextState: AppStateStatus) => {
       if (nextState === 'active' && mountedRef.current) {
-        updateHeartbeat(gameId).catch(() => {});
+        updateHeartbeat(gameId, mySlot).catch(() => {});
       }
     };
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => subscription.remove();
-  }, [gameId]);
+  }, [gameId, mySlot]);
 
   // Turn timer (30 seconds per turn)
   useEffect(() => {
@@ -248,7 +249,7 @@ export function useOnlineGame(gameId: string, mySlot: PlayerSlot) {
       // Auto-skip turn when time runs out (only the current turn player's client)
       if (remaining <= 0 && room.turns.currentTurn === mySlot && !skipTurnCalledRef.current) {
         skipTurnCalledRef.current = true;
-        skipTurn(gameId).catch(() => {});
+        skipTurn(gameId, mySlot).catch(() => {});
       }
     }, 1000);
 
@@ -260,21 +261,21 @@ export function useOnlineGame(gameId: string, mySlot: PlayerSlot) {
   const pickCoinFlip = useCallback(
     async (pick: number) => {
       dispatch({ type: 'SET_COIN_PICK', pick });
-      await submitCoinFlipPick(gameId, pick);
+      await submitCoinFlipPick(gameId, mySlot, pick);
     },
-    [gameId]
+    [gameId, mySlot]
   );
 
   const makeGuess = useCallback(
     async (guessValue: string) => {
-      await submitGuess(gameId, guessValue);
+      await submitGuess(gameId, mySlot, guessValue);
     },
-    [gameId]
+    [gameId, mySlot]
   );
 
   const forfeit = useCallback(async () => {
-    await forfeitGame(gameId);
-  }, [gameId]);
+    await forfeitGame(gameId, mySlot);
+  }, [gameId, mySlot]);
 
   return {
     state,
