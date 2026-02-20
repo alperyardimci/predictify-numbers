@@ -24,6 +24,10 @@
         "appleId": "alperyardimci@icloud.com",
         "ascAppId": "6758787452",
         "appleTeamId": "9XUU5C4KK4"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "production"
       }
     }
   }

@@ -56,6 +56,23 @@ export async function clearAllRecords(): Promise<void> {
   }
 }
 
+const DISPLAY_NAME_KEY = 'last_display_name';
+
+export async function getLastDisplayName(): Promise<string> {
+  try {
+    const val = await AsyncStorage.getItem(DISPLAY_NAME_KEY);
+    return val || '';
+  } catch {
+    return '';
+  }
+}
+
+export async function saveLastDisplayName(name: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(DISPLAY_NAME_KEY, name);
+  } catch {}
+}
+
 const WIN_STREAK_KEY = 'online_win_streak';
 
 export async function getWinStreak(): Promise<number> {

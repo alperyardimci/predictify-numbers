@@ -14,7 +14,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { useMatchmaking } from '../hooks/useMatchmaking';
-import * as Haptics from 'expo-haptics';
+import { useQueueCounts } from '../hooks/useQueueCounts';
+import * as Haptics from '../utils/haptics';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'OnlineLobby'>;
 
@@ -22,6 +23,7 @@ export function OnlineLobbyScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { status, match, error, startSearching, cancelSearching } = useMatchmaking();
   const [assistedMode, setAssistedMode] = useState(false);
+  const queueCounts = useQueueCounts();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
@@ -118,6 +120,13 @@ export function OnlineLobbyScreen() {
                 <Text style={[styles.modeOptionText, !assistedMode && styles.modeOptionTextActive]}>
                   Yardımsız
                 </Text>
+                {queueCounts.unassisted > 0 && (
+                  <View style={styles.queueBadge}>
+                    <Text style={styles.queueBadgeText}>
+                      {queueCounts.unassisted} kişi bekliyor
+                    </Text>
+                  </View>
+                )}
               </Pressable>
               <Pressable
                 style={[styles.modeOption, assistedMode && styles.modeOptionActive]}
@@ -126,6 +135,13 @@ export function OnlineLobbyScreen() {
                 <Text style={[styles.modeOptionText, assistedMode && styles.modeOptionTextActive]}>
                   Yardımlı
                 </Text>
+                {queueCounts.assisted > 0 && (
+                  <View style={styles.queueBadge}>
+                    <Text style={styles.queueBadgeText}>
+                      {queueCounts.assisted} kişi bekliyor
+                    </Text>
+                  </View>
+                )}
               </Pressable>
             </View>
             <Text style={styles.modeDesc}>
@@ -262,6 +278,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.sm,
     alignItems: 'center',
+    gap: 4,
   },
   modeOptionActive: {
     backgroundColor: colors.primary,
@@ -273,6 +290,17 @@ const styles = StyleSheet.create({
   },
   modeOptionTextActive: {
     color: colors.text,
+  },
+  queueBadge: {
+    backgroundColor: colors.secondary,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  queueBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.background,
   },
   modeDesc: {
     fontSize: 12,

@@ -55,7 +55,7 @@ export function useMatchmaking() {
     };
   }, [cleanup]);
 
-  const startSearching = useCallback(async (assistedMode: boolean) => {
+  const startSearching = useCallback(async (assistedMode: boolean, leagueId?: string) => {
     try {
       setStatus('searching');
       setError(null);
@@ -72,7 +72,7 @@ export function useMatchmaking() {
       await clearNotification(playerId);
 
       // Join the queue
-      const entryKey = await joinQueue(playerId, assistedMode);
+      const entryKey = await joinQueue(playerId, assistedMode, leagueId);
       entryKeyRef.current = entryKey;
       console.log('[Matchmaking] Joined queue with key:', entryKey);
 
@@ -97,7 +97,7 @@ export function useMatchmaking() {
         if (!mountedRef.current || !entryKeyRef.current) return;
         try {
           console.log('[Matchmaking] Polling for opponent...');
-          const result = await tryMatchWithOpponent(playerId, entryKeyRef.current, assistedMode);
+          const result = await tryMatchWithOpponent(playerId, entryKeyRef.current, assistedMode, leagueId);
           console.log('[Matchmaking] Poll result:', result);
           if (result && mountedRef.current) {
             cleanup();

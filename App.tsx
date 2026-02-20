@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GameProvider } from './src/context/GameContext';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -8,15 +8,20 @@ import { GameScreen } from './src/screens/GameScreen';
 import { RecordsScreen } from './src/screens/RecordsScreen';
 import { OnlineLobbyScreen } from './src/screens/OnlineLobbyScreen';
 import { OnlineGameScreen } from './src/screens/OnlineGameScreen';
+import { LeagueScreen } from './src/screens/LeagueScreen';
+import { LeagueDetailScreen } from './src/screens/LeagueDetailScreen';
+import { ChallengeListener } from './src/components/ChallengeListener';
 import { RootStackParamList } from './src/types';
 import { colors } from './src/constants/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
+  const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
+
   return (
     <GameProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <StatusBar style="light" />
         <Stack.Navigator
           screenOptions={{
@@ -30,8 +35,11 @@ export default function App() {
           <Stack.Screen name="Records" component={RecordsScreen} />
           <Stack.Screen name="OnlineLobby" component={OnlineLobbyScreen} />
           <Stack.Screen name="OnlineGame" component={OnlineGameScreen} />
+          <Stack.Screen name="League" component={LeagueScreen} />
+          <Stack.Screen name="LeagueDetail" component={LeagueDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
+      <ChallengeListener navigationRef={navigationRef} />
     </GameProvider>
   );
 }

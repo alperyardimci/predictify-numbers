@@ -7,7 +7,7 @@ import {
   Modal,
   Animated,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../utils/haptics';
 import { colors, spacing, borderRadius } from '../constants/theme';
 
 interface OnlineResultModalProps {

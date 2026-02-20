@@ -11,6 +11,37 @@
     "games": {
       ".read": true,
       ".write": true
+    },
+    "leagues": {
+      ".read": true,
+      ".write": true
+    },
+    "leagueMembers": {
+      ".read": true,
+      ".write": true
+    },
+    "playerLeagues": {
+      ".read": true,
+      ".write": true
+    },
+    "leagueCodes": {
+      ".read": true,
+      ".write": true
+    },
+    "leagueMatches": {
+      ".read": true,
+      ".write": true,
+      "$leagueId": {
+        ".indexOn": ["timestamp"]
+      }
+    },
+    "challenges": {
+      ".read": true,
+      ".write": true
+    },
+    "playerChallenges": {
+      ".read": true,
+      ".write": true
     }
   }
 }

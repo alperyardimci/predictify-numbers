@@ -91,6 +91,26 @@ export function HomeScreen() {
           </Pressable>
         </View>
 
+        {/* Leagues Card */}
+        <View style={[styles.sectionCard, styles.leagueCard]}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionDot, styles.leagueDot]} />
+            <Text style={[styles.sectionTitle, styles.leagueTitle]}>Ligler</Text>
+          </View>
+          <Text style={styles.sectionDesc}>
+            Lig kur, arkadaşlarını davet et, sıralamada yarış.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.leagueButton,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => navigation.navigate('League')}
+          >
+            <Text style={styles.leagueButtonText}>Liglere Git</Text>
+          </Pressable>
+        </View>
+
         {/* Hint Bar */}
         <View style={styles.hintBar}>
           <View style={styles.hintItem}>
@@ -274,6 +294,28 @@ const styles = StyleSheet.create({
   streakLabel: {
     fontSize: 13,
     color: colors.textSecondary,
+  },
+
+  // Leagues card
+  leagueCard: {
+    borderColor: colors.primary + '40',
+  },
+  leagueDot: {
+    backgroundColor: colors.primary,
+  },
+  leagueTitle: {
+    color: colors.primary,
+  },
+  leagueButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+  },
+  leagueButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
   },
 
   // Online button

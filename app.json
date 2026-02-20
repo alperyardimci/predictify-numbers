@@ -2,7 +2,7 @@
   "expo": {
     "name": "Predictify Numbers",
     "slug": "PredictifyNumbers",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -28,7 +28,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.alperyardimci.predictifynumbers"
+      "package": "com.alperyardimci.predictifynumbers",
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"

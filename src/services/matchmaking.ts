@@ -15,13 +15,14 @@ import { PlayerSlot, OnlineGameRoom, MatchmakingEntry } from '../types/online';
 /**
  * Join the matchmaking queue. Returns the entry key so we can cancel later.
  */
-export async function joinQueue(playerId: string, assistedMode: boolean): Promise<string> {
+export async function joinQueue(playerId: string, assistedMode: boolean, leagueId?: string): Promise<string> {
   const queueRef = ref(database, 'matchmaking');
   const newEntryRef = push(queueRef);
   await set(newEntryRef, {
     playerId,
     timestamp: Date.now(),
     assistedMode,
+    leagueId: leagueId || null,
   });
   return newEntryRef.key!;
 }
@@ -61,7 +62,8 @@ export function listenForMatch(
 export async function tryMatchWithOpponent(
   myPlayerId: string,
   myEntryKey: string,
-  assistedMode: boolean
+  assistedMode: boolean,
+  leagueId?: string
 ): Promise<{ gameId: string; slot: PlayerSlot } | null> {
   const queueRef = ref(database, 'matchmaking');
 
@@ -76,7 +78,7 @@ export async function tryMatchWithOpponent(
       return; // abort — we were already claimed
     }
 
-    // Find an opponent (not ourselves, not too old, same mode)
+    // Find an opponent (not ourselves, not too old, same mode, same league)
     const now = Date.now();
     let foundKey: string | null = null;
     let foundId: string | null = null;
@@ -86,6 +88,7 @@ export async function tryMatchWithOpponent(
       if (entry.playerId === myPlayerId) continue;
       if (now - entry.timestamp > 60000) continue;
       if (!!entry.assistedMode !== assistedMode) continue;
+      if ((entry.leagueId || null) !== (leagueId || null)) continue;
       foundKey = key;
       foundId = entry.playerId;
       break;
@@ -110,7 +113,7 @@ export async function tryMatchWithOpponent(
   console.log('[Matchmaking:try] Atomically claimed match with:', opponentId);
 
   // Create the game room
-  const gameId = await createGameRoom(myPlayerId, opponentId, assistedMode);
+  const gameId = await createGameRoom(myPlayerId, opponentId, assistedMode, leagueId);
   console.log('[Matchmaking:try] Game created:', gameId);
 
   // Notify the opponent
@@ -126,7 +129,7 @@ export async function tryMatchWithOpponent(
 /**
  * Create a new game room with a secret 6-digit number.
  */
-async function createGameRoom(player1Id: string, player2Id: string, assistedMode: boolean): Promise<string> {
+async function createGameRoom(player1Id: string, player2Id: string, assistedMode: boolean, leagueId?: string): Promise<string> {
   const gamesRef = ref(database, 'games');
   const newGameRef = push(gamesRef);
   const gameId = newGameRef.key!;
@@ -150,11 +153,41 @@ async function createGameRoom(player1Id: string, player2Id: string, assistedMode
       turnNumber: 1,
       turnStartedAt: 0,
     },
+    ...(leagueId ? { leagueId } : {}),
   };
 
   await set(newGameRef, roomData);
   console.log('[Matchmaking] Room created with data:', JSON.stringify(roomData));
   return gameId;
+}
+
+/**
+ * Listen for real-time queue counts grouped by assistedMode.
+ * Filters out stale entries (>60s). Returns an unsubscribe function.
+ */
+export function listenForQueueCounts(
+  onCounts: (counts: { assisted: number; unassisted: number }) => void
+): () => void {
+  const queueRef = ref(database, 'matchmaking');
+  onValue(queueRef, (snapshot) => {
+    let assisted = 0;
+    let unassisted = 0;
+    const data = snapshot.val() as Record<string, MatchmakingEntry> | null;
+    if (data) {
+      const now = Date.now();
+      for (const entry of Object.values(data)) {
+        if (now - entry.timestamp > 60000) continue;
+        if (entry.assistedMode) {
+          assisted++;
+        } else {
+          unassisted++;
+        }
+      }
+    }
+    onCounts({ assisted, unassisted });
+  });
+
+  return () => off(queueRef);
 }
 
 /**

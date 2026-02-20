@@ -28,7 +28,9 @@ export type RootStackParamList = {
   Game: { digits: number };
   Records: undefined;
   OnlineLobby: undefined;
-  OnlineGame: { gameId: string; mySlot: 'player1' | 'player2' };
+  OnlineGame: { gameId: string; mySlot: 'player1' | 'player2'; leagueId?: string };
+  League: undefined;
+  LeagueDetail: { leagueId: string };
 };
 
 export type GameAction =

@@ -9,9 +9,10 @@ interface GuessHistoryProps {
   digits: number;
   assistedMode?: boolean;
   secretNumber?: string;
+  inverted?: boolean;
 }
 
-export function GuessHistory({ guesses, digits, assistedMode = false, secretNumber = '' }: GuessHistoryProps) {
+export function GuessHistory({ guesses, digits, assistedMode = false, secretNumber = '', inverted = false }: GuessHistoryProps) {
   if (guesses.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -29,6 +30,7 @@ export function GuessHistory({ guesses, digits, assistedMode = false, secretNumb
       data={guesses}
       keyExtractor={(_, index) => index.toString()}
       showsVerticalScrollIndicator={false}
+      inverted={inverted}
       renderItem={({ item: guess, index }) => {
         const isLatest = index === 0;
         const hasOwner = !!guess.owner;

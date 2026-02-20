@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../utils/haptics';
 import { Timer } from '../components/Timer';
 import { GuessInput } from '../components/GuessInput';
 import { GuessHistory } from '../components/GuessHistory';

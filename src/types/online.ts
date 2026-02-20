@@ -37,6 +37,8 @@ export interface OnlineGameRoom {
     reason: 'guessed' | 'disconnect' | 'forfeit' | null;
     winnerGuessCount: number | null;
   };
+  leagueId?: string;
+  leagueStatsUpdated?: boolean;
 }
 
 export type PlayerSlot = 'player1' | 'player2';
@@ -45,6 +47,7 @@ export interface MatchmakingEntry {
   playerId: string;
   timestamp: number;
   assistedMode: boolean;
+  leagueId?: string | null;
 }
 
 export interface PlayerNotification {

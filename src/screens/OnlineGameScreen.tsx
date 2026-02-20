@@ -19,8 +19,9 @@ import { CoinFlipView } from '../components/CoinFlipView';
 import { OnlineInfoBar } from '../components/OnlineInfoBar';
 import { OnlineResultModal } from '../components/OnlineResultModal';
 import { DisconnectBanner } from '../components/DisconnectBanner';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../utils/haptics';
 import { updateWinStreak } from '../utils/storage';
+import { updateLeagueStats } from '../services/league';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'OnlineGame'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'OnlineGame'>;
@@ -28,7 +29,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'OnlineGame'
 export function OnlineGameScreen() {
   const route = useRoute<ScreenRouteProp>();
   const navigation = useNavigation<NavigationProp>();
-  const { gameId, mySlot } = route.params;
+  const { gameId, mySlot, leagueId } = route.params;
 
   const { state, pickCoinFlip, makeGuess, forfeit } = useOnlineGame(gameId, mySlot as PlayerSlot);
 
@@ -57,15 +58,28 @@ export function OnlineGameScreen() {
     );
   };
 
-  // Update win streak when game finishes
+  // Update win streak + league stats when game finishes
   const streakUpdated = useRef(false);
   useEffect(() => {
     if (state.phase === 'finished' && state.room?.result?.winner && !streakUpdated.current) {
       streakUpdated.current = true;
       const won = state.room.result.winner === mySlot;
       updateWinStreak(won);
+
+      // Update league stats if this is a league match
+      if (leagueId && state.room.result.winner) {
+        const winnerSlot = state.room.result.winner;
+        const loserSlot = winnerSlot === 'player1' ? 'player2' : 'player1';
+        const winnerId = state.room[winnerSlot].id;
+        const loserId = state.room[loserSlot].id;
+        const guessCount = state.room.result.winnerGuessCount || 0;
+        const reason = state.room.result.reason || 'guessed';
+        updateLeagueStats(gameId, leagueId, winnerId, loserId, guessCount, reason).catch(
+          (err) => console.error('[LeagueStats] Error:', err)
+        );
+      }
     }
-  }, [state.phase, state.room?.result?.winner, mySlot]);
+  }, [state.phase, state.room?.result?.winner, mySlot, leagueId, gameId]);
 
   // Loading state
   if (state.phase === 'loading' || !state.room) {
@@ -152,6 +166,7 @@ export function OnlineGameScreen() {
             digits={6}
             assistedMode={!!state.room.assistedMode}
             secretNumber={state.room.secretNumber}
+            inverted
           />
         </View>
 
