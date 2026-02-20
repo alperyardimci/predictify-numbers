@@ -41,6 +41,8 @@ google-play-service-account.json
 
 # build artifacts
 build/
+functions/lib/
+functions/node_modules/
 
 # generated native folders
 /ios

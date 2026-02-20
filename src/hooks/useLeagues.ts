@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { getPlayerId } from '../services/playerIdentity';
+import { auth } from '../services/firebase';
 import { getMyLeagues } from '../services/league';
 import { LeagueListItem } from '../types/league';
 
@@ -11,7 +11,7 @@ export function useLeagues() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const playerId = await getPlayerId();
+      const playerId = auth.currentUser!.uid;
       const items = await getMyLeagues(playerId);
       // Sort by most recent match first, then by join date
       items.sort((a, b) => {

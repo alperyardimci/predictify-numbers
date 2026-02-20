@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getPlayerId } from '../services/playerIdentity';
+import { auth } from '../services/firebase';
 import {
   joinQueue,
   leaveQueue,
   listenForMatch,
   tryMatchWithOpponent,
-  cleanStaleEntries,
   clearNotification,
 } from '../services/matchmaking';
 import { PlayerSlot } from '../types/online';
@@ -25,7 +24,6 @@ export function useMatchmaking() {
   const entryKeyRef = useRef<string | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const playerIdRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
 
   const cleanup = useCallback(() => {
@@ -44,14 +42,10 @@ export function useMatchmaking() {
     return () => {
       mountedRef.current = false;
       cleanup();
-      // Leave queue on unmount if still searching
       if (entryKeyRef.current) {
         leaveQueue(entryKeyRef.current).catch(() => {});
       }
-      // Clear notification
-      if (playerIdRef.current) {
-        clearNotification(playerIdRef.current).catch(() => {});
-      }
+      clearNotification().catch(() => {});
     };
   }, [cleanup]);
 
@@ -61,18 +55,14 @@ export function useMatchmaking() {
       setError(null);
       setMatch(null);
 
-      const playerId = await getPlayerId();
-      playerIdRef.current = playerId;
+      const playerId = auth.currentUser!.uid;
       console.log('[Matchmaking] Player ID:', playerId);
 
-      // Clean stale entries first
-      await cleanStaleEntries();
-
       // Clear any old notifications
-      await clearNotification(playerId);
+      await clearNotification();
 
-      // Join the queue
-      const entryKey = await joinQueue(playerId, assistedMode, leagueId);
+      // Join the queue (no playerId param — server uses auth.uid)
+      const entryKey = await joinQueue(assistedMode, leagueId);
       entryKeyRef.current = entryKey;
       console.log('[Matchmaking] Joined queue with key:', entryKey);
 
@@ -89,7 +79,7 @@ export function useMatchmaking() {
         entryKeyRef.current = null;
         setMatch({ gameId, mySlot: slot });
         setStatus('found');
-        clearNotification(playerId).catch(() => {});
+        clearNotification().catch(() => {});
       });
 
       // Periodically try to find an opponent ourselves
@@ -97,7 +87,7 @@ export function useMatchmaking() {
         if (!mountedRef.current || !entryKeyRef.current) return;
         try {
           console.log('[Matchmaking] Polling for opponent...');
-          const result = await tryMatchWithOpponent(playerId, entryKeyRef.current, assistedMode, leagueId);
+          const result = await tryMatchWithOpponent(entryKeyRef.current, assistedMode, leagueId);
           console.log('[Matchmaking] Poll result:', result);
           if (result && mountedRef.current) {
             cleanup();
@@ -134,9 +124,7 @@ export function useMatchmaking() {
       } catch {}
       entryKeyRef.current = null;
     }
-    if (playerIdRef.current) {
-      clearNotification(playerIdRef.current).catch(() => {});
-    }
+    clearNotification().catch(() => {});
     setStatus('idle');
     setMatch(null);
   }, [cleanup]);

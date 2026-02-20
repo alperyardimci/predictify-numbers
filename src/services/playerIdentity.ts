@@ -1,25 +1,43 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from './firebase';
 
-const PLAYER_ID_KEY = '@predictify_player_id';
+let resolveAuthReady: (user: User) => void;
+let authReadyPromise = new Promise<User>((resolve) => {
+  resolveAuthReady = resolve;
+});
 
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+let currentUser: User | null = null;
+
+// Listen for auth state changes
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    resolveAuthReady(user);
+  } else {
+    // No user — sign in anonymously
+    try {
+      const credential = await signInAnonymously(auth);
+      currentUser = credential.user;
+      resolveAuthReady(credential.user);
+    } catch (err) {
+      console.error('[Auth] Anonymous sign-in failed:', err);
+    }
+  }
+});
+
+/**
+ * Returns the current user's UID. Waits for auth to be ready.
+ */
+export async function getPlayerId(): Promise<string> {
+  if (currentUser) return currentUser.uid;
+  const user = await authReadyPromise;
+  return user.uid;
 }
 
-let cachedPlayerId: string | null = null;
-
-export async function getPlayerId(): Promise<string> {
-  if (cachedPlayerId) return cachedPlayerId;
-
-  let id = await AsyncStorage.getItem(PLAYER_ID_KEY);
-  if (!id) {
-    id = generateUUID();
-    await AsyncStorage.setItem(PLAYER_ID_KEY, id);
-  }
-  cachedPlayerId = id;
-  return id;
+/**
+ * Wait for Firebase Auth to be fully initialized.
+ */
+export async function waitForAuth(): Promise<User> {
+  if (currentUser) return currentUser;
+  return authReadyPromise;
 }

@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -13,11 +14,25 @@ import { LeagueDetailScreen } from './src/screens/LeagueDetailScreen';
 import { ChallengeListener } from './src/components/ChallengeListener';
 import { RootStackParamList } from './src/types';
 import { colors } from './src/constants/theme';
+import { waitForAuth } from './src/services/playerIdentity';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    waitForAuth().then(() => setAuthReady(true));
+  }, []);
+
+  if (!authReady) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color={colors.secondary} size="large" />
+      </View>
+    );
+  }
 
   return (
     <GameProvider>
@@ -43,3 +58,12 @@ export default function App() {
     </GameProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});

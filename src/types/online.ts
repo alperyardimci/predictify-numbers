@@ -1,4 +1,5 @@
 import { Guess } from './index';
+import { DigitStatus } from '../utils/gameLogic';
 
 export interface OnlinePlayer {
   id: string;
@@ -14,11 +15,12 @@ export interface CoinFlipData {
 
 export interface OnlineGuess extends Guess {
   index: number;
+  digitStatuses?: DigitStatus[];
 }
 
 export interface OnlineGameRoom {
   status: 'coin_flip' | 'playing' | 'finished';
-  secretNumber: string;
+  secretNumber?: string; // Only present after game finishes
   assistedMode: boolean;
   player1: OnlinePlayer;
   player2: OnlinePlayer;

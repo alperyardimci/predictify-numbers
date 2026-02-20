@@ -11,7 +11,7 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { LeagueChallenge } from '../types/league';
-import { getPlayerId } from '../services/playerIdentity';
+import { auth } from '../services/firebase';
 import {
   listenForChallenges,
   acceptChallenge,
@@ -23,17 +23,12 @@ interface Props {
 }
 
 export function ChallengeListener({ navigationRef }: Props) {
-  const [playerId, setPlayerId] = useState<string | null>(null);
   const [incoming, setIncoming] = useState<LeagueChallenge | null>(null);
   const processedRef = useRef<Set<string>>(new Set());
 
-  // Get player ID on mount
+  // Listen for incoming challenges globally using auth.currentUser
   useEffect(() => {
-    getPlayerId().then(setPlayerId);
-  }, []);
-
-  // Listen for incoming challenges globally
-  useEffect(() => {
+    const playerId = auth.currentUser?.uid;
     if (!playerId) return;
 
     const unsub = listenForChallenges(playerId, (challenge) => {
@@ -44,7 +39,7 @@ export function ChallengeListener({ navigationRef }: Props) {
     });
 
     return unsub;
-  }, [playerId]);
+  }, []);
 
   const handleAccept = async () => {
     if (!incoming) return;
@@ -68,10 +63,10 @@ export function ChallengeListener({ navigationRef }: Props) {
   };
 
   const handleDecline = async () => {
-    if (!incoming || !playerId) return;
+    if (!incoming) return;
     const challengeId = incoming.id;
     setIncoming(null);
-    await declineChallenge(challengeId, playerId).catch(() => {});
+    await declineChallenge(challengeId).catch(() => {});
   };
 
   return (

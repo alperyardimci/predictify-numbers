@@ -7,6 +7,7 @@ import {
   Text,
   Switch,
   Alert,
+  Platform,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -92,14 +93,20 @@ export function GameScreen() {
 
   const handleGoHome = () => {
     if (state.gameStatus === 'playing' && state.moveCount > 0) {
-      Alert.alert(
-        'Oyundan Çık',
-        'Oyun ilerlemeniz kaybolacak. Emin misiniz?',
-        [
-          { text: 'İptal', style: 'cancel' },
-          { text: 'Çık', style: 'destructive', onPress: confirmAndGoHome },
-        ],
-      );
+      if (Platform.OS === 'web') {
+        if (window.confirm('Oyun ilerlemeniz kaybolacak. Emin misiniz?')) {
+          confirmAndGoHome();
+        }
+      } else {
+        Alert.alert(
+          'Oyundan Çık',
+          'Oyun ilerlemeniz kaybolacak. Emin misiniz?',
+          [
+            { text: 'İptal', style: 'cancel' },
+            { text: 'Çık', style: 'destructive', onPress: confirmAndGoHome },
+          ],
+        );
+      }
     } else {
       confirmAndGoHome();
     }

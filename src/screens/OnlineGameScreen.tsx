@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -44,18 +45,24 @@ export function OnlineGameScreen() {
   };
 
   const handleQuit = () => {
-    Alert.alert(
-      'Pes Et',
-      'Oyundan çekilmek istediğine emin misin? Rakip kazanacak.',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Pes Et',
-          style: 'destructive',
-          onPress: () => forfeit(),
-        },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      if (window.confirm('Oyundan çekilmek istediğine emin misin? Rakip kazanacak.')) {
+        forfeit();
+      }
+    } else {
+      Alert.alert(
+        'Pes Et',
+        'Oyundan çekilmek istediğine emin misin? Rakip kazanacak.',
+        [
+          { text: 'Vazgeç', style: 'cancel' },
+          {
+            text: 'Pes Et',
+            style: 'destructive',
+            onPress: () => forfeit(),
+          },
+        ]
+      );
+    }
   };
 
   // Update win streak + league stats when game finishes
@@ -66,15 +73,9 @@ export function OnlineGameScreen() {
       const won = state.room.result.winner === mySlot;
       updateWinStreak(won);
 
-      // Update league stats if this is a league match
-      if (leagueId && state.room.result.winner) {
-        const winnerSlot = state.room.result.winner;
-        const loserSlot = winnerSlot === 'player1' ? 'player2' : 'player1';
-        const winnerId = state.room[winnerSlot].id;
-        const loserId = state.room[loserSlot].id;
-        const guessCount = state.room.result.winnerGuessCount || 0;
-        const reason = state.room.result.reason || 'guessed';
-        updateLeagueStats(gameId, leagueId, winnerId, loserId, guessCount, reason).catch(
+      // Update league stats if this is a league match (only gameId — server reads the rest)
+      if (leagueId) {
+        updateLeagueStats(gameId).catch(
           (err) => console.error('[LeagueStats] Error:', err)
         );
       }
@@ -125,6 +126,7 @@ export function OnlineGameScreen() {
       bulls: g.bulls,
       cows: g.cows,
       repeats: g.repeats,
+      digitStatuses: g.digitStatuses || undefined,
       owner: 'me',
       _sort: iGoFirst ? g.index * 2 : g.index * 2 + 1,
     });
@@ -136,6 +138,7 @@ export function OnlineGameScreen() {
       bulls: g.bulls,
       cows: g.cows,
       repeats: g.repeats,
+      digitStatuses: g.digitStatuses || undefined,
       owner: 'opponent',
       _sort: iGoFirst ? g.index * 2 + 1 : g.index * 2,
     });
@@ -165,7 +168,6 @@ export function OnlineGameScreen() {
             guesses={allGuesses}
             digits={6}
             assistedMode={!!state.room.assistedMode}
-            secretNumber={state.room.secretNumber}
             inverted
           />
         </View>

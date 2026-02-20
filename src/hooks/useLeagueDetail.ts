@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getPlayerId } from '../services/playerIdentity';
+import { auth } from '../services/firebase';
 import { getLeague, listenToLeagueMembers, listenToLeagueMatches } from '../services/league';
 import { League, LeagueMember, LeagueStanding, LeagueMatch } from '../types/league';
 
@@ -14,7 +14,8 @@ export function useLeagueDetail(leagueId: string) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [leagueData, pid] = await Promise.all([getLeague(leagueId), getPlayerId()]);
+      const pid = auth.currentUser!.uid;
+      const leagueData = await getLeague(leagueId);
       if (cancelled) return;
       setLeague(leagueData);
       setMyPlayerId(pid);

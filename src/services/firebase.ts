@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
+import { initializeAuth, getAuth, Auth } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: '***REMOVED***',
@@ -13,3 +17,20 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const database = getDatabase(app);
+
+// Auth — use AsyncStorage persistence on native, default on web
+// getReactNativePersistence is exported from the RN entry point (Metro resolves it)
+// but TypeScript's type checker sees the default entry. We use require() to bypass.
+let _auth: Auth;
+if (Platform.OS === 'web') {
+  _auth = getAuth(app);
+} else {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { getReactNativePersistence } = require('firebase/auth');
+  _auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+}
+export const auth = _auth;
+
+export const functions = getFunctions(app, 'europe-west1');

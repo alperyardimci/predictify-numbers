@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -23,6 +24,7 @@ import {
   cancelChallenge,
   listenToChallenge,
 } from '../services/league';
+import { auth } from '../services/firebase';
 
 type ScreenRouteProp = RouteProp<RootStackParamList, 'LeagueDetail'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'LeagueDetail'>;
@@ -79,16 +81,29 @@ export function LeagueDetailScreen() {
         setPendingChallengeId(null);
         setChallengeTargetId(null);
         setChallengeTargetName('');
-        Alert.alert('Reddedildi', 'Rakip maç teklifini reddetti.');
+        if (Platform.OS === 'web') {
+          window.alert('Rakip maç teklifini reddetti.');
+        } else {
+          Alert.alert('Reddedildi', 'Rakip maç teklifini reddetti.');
+        }
       }
     });
     return unsub;
   }, [pendingChallengeId, navigation, leagueId]);
 
   const handleCopyCode = async () => {
-    if (league?.code) {
-      await Clipboard.setStringAsync(league.code);
-      Alert.alert('Kopyalandı', `Lig kodu "${league.code}" panoya kopyalandı.`);
+    if (!league?.code) return;
+    try {
+      if (Platform.OS === 'web') {
+        await navigator.clipboard.writeText(league.code);
+      } else {
+        await Clipboard.setStringAsync(league.code);
+        Alert.alert('Kopyalandı', `Lig kodu "${league.code}" panoya kopyalandı.`);
+      }
+    } catch {
+      if (Platform.OS === 'web') {
+        window.alert(`Lig kodu: ${league.code}`);
+      }
     }
   };
 
@@ -99,58 +114,73 @@ export function LeagueDetailScreen() {
 
   const handleLeaveLeague = () => {
     if (!myPlayerId || !league) return;
-    Alert.alert(
-      'Ligden Ayrıl',
-      `"${league.name}" liginden ayrılmak istediğine emin misin?`,
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Ayrıl',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await leaveLeague(myPlayerId, leagueId);
-              navigation.goBack();
-            } catch (err: any) {
-              Alert.alert('Hata', err.message || 'Ligden ayrılınamadı.');
-            }
-          },
-        },
-      ]
-    );
+
+    const doLeave = async () => {
+      try {
+        await leaveLeague(leagueId);
+        navigation.goBack();
+      } catch (err: any) {
+        if (Platform.OS === 'web') {
+          window.alert(err.message || 'Ligden ayrılınamadı.');
+        } else {
+          Alert.alert('Hata', err.message || 'Ligden ayrılınamadı.');
+        }
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`"${league.name}" liginden ayrılmak istediğine emin misin?`)) {
+        doLeave();
+      }
+    } else {
+      Alert.alert(
+        'Ligden Ayrıl',
+        `"${league.name}" liginden ayrılmak istediğine emin misin?`,
+        [
+          { text: 'Vazgeç', style: 'cancel' },
+          { text: 'Ayrıl', style: 'destructive', onPress: doLeave },
+        ]
+      );
+    }
   };
 
   const handleChallenge = async (targetId: string, targetName: string) => {
     if (!myPlayerId || !league) return;
 
-    const myStanding = standings.find((s) => s.playerId === myPlayerId);
-    const myName = myStanding?.displayName || 'Oyuncu';
+    const doChallenge = async () => {
+      try {
+        const cid = await sendChallenge(targetId, leagueId);
+        setPendingChallengeId(cid);
+        setChallengeTargetId(targetId);
+        setChallengeTargetName(targetName);
+      } catch (err: any) {
+        if (Platform.OS === 'web') {
+          window.alert(err.message || 'Teklif gönderilemedi.');
+        } else {
+          Alert.alert('Hata', err.message || 'Teklif gönderilemedi.');
+        }
+      }
+    };
 
-    Alert.alert(
-      'Maç Teklifi',
-      `${targetName} adlı oyuncuya maç teklif et?`,
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Teklif Et',
-          onPress: async () => {
-            try {
-              const cid = await sendChallenge(myPlayerId, targetId, myName, leagueId, league.assistedMode);
-              setPendingChallengeId(cid);
-              setChallengeTargetId(targetId);
-              setChallengeTargetName(targetName);
-            } catch (err: any) {
-              Alert.alert('Hata', err.message || 'Teklif gönderilemedi.');
-            }
-          },
-        },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      if (window.confirm(`${targetName} adlı oyuncuya maç teklif et?`)) {
+        doChallenge();
+      }
+    } else {
+      Alert.alert(
+        'Maç Teklifi',
+        `${targetName} adlı oyuncuya maç teklif et?`,
+        [
+          { text: 'Vazgeç', style: 'cancel' },
+          { text: 'Teklif Et', onPress: doChallenge },
+        ]
+      );
+    }
   };
 
   const handleCancelChallenge = async () => {
-    if (!pendingChallengeId || !challengeTargetId) return;
-    await cancelChallenge(pendingChallengeId, challengeTargetId).catch(() => {});
+    if (!pendingChallengeId) return;
+    await cancelChallenge(pendingChallengeId).catch(() => {});
     setPendingChallengeId(null);
     setChallengeTargetId(null);
     setChallengeTargetName('');

@@ -23,7 +23,6 @@ import { RootStackParamList } from '../types';
 import { LeagueListItem } from '../types/league';
 import { useLeagues } from '../hooks/useLeagues';
 import { createLeague, joinLeague } from '../services/league';
-import { getPlayerId } from '../services/playerIdentity';
 import { getLastDisplayName, saveLastDisplayName } from '../utils/storage';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'League'>;
@@ -69,9 +68,8 @@ export function LeagueScreen() {
     }
     try {
       setCreating(true);
-      const playerId = await getPlayerId();
       await saveLastDisplayName(trimmedDisplay);
-      const league = await createLeague(playerId, trimmedName, createAssisted, trimmedDisplay);
+      const league = await createLeague(trimmedName, createAssisted, trimmedDisplay);
       setCreatedCode(league.code);
       reload();
     } catch (err: any) {
@@ -88,9 +86,24 @@ export function LeagueScreen() {
     setCreatedCode(null);
   };
 
+  const [copiedCode, setCopiedCode] = useState(false);
+
   const handleCopyCode = async (code: string) => {
-    await Clipboard.setStringAsync(code);
-    Alert.alert('Kopyalandı', `Lig kodu "${code}" panoya kopyalandı.`);
+    try {
+      if (Platform.OS === 'web') {
+        await navigator.clipboard.writeText(code);
+      } else {
+        await Clipboard.setStringAsync(code);
+      }
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {
+      if (Platform.OS === 'web') {
+        window.alert(`Lig kodu: ${code}`);
+      } else {
+        Alert.alert('Lig Kodu', code);
+      }
+    }
   };
 
   const handleJoin = async () => {
@@ -102,9 +115,8 @@ export function LeagueScreen() {
     }
     try {
       setJoining(true);
-      const playerId = await getPlayerId();
       await saveLastDisplayName(trimmedDisplay);
-      const league = await joinLeague(playerId, trimmedCode, trimmedDisplay);
+      const league = await joinLeague(trimmedCode, trimmedDisplay);
       setShowJoin(false);
       setJoinCode('');
       navigation.navigate('LeagueDetail', { leagueId: league.id });
@@ -253,7 +265,7 @@ export function LeagueScreen() {
       <Modal visible={showCreate} transparent animationType="fade" onRequestClose={handleCloseCreate}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Pressable style={styles.modalOverlay} onPress={() => { Keyboard.dismiss(); handleCloseCreate(); }}>
-          <Pressable style={styles.modalContent} onPress={() => Keyboard.dismiss()}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             {createdCode ? (
               <>
                 <Text style={styles.successIcon}>{'\u{1F389}'}</Text>
@@ -261,7 +273,9 @@ export function LeagueScreen() {
                 <Text style={styles.modalLabel}>Lig Kodu:</Text>
                 <Pressable style={styles.codeDisplay} onPress={() => handleCopyCode(createdCode)}>
                   <Text style={styles.codeText}>{createdCode}</Text>
-                  <Text style={styles.copyHint}>Kopyalamak için dokun</Text>
+                  <Text style={[styles.copyHint, copiedCode && { color: colors.secondary }]}>
+                    {copiedCode ? 'Kopyalandı!' : 'Kopyalamak için dokun'}
+                  </Text>
                 </Pressable>
                 <Text style={styles.codeHint}>Bu kodu arkadaşlarınla paylaş</Text>
                 <Pressable
@@ -337,7 +351,7 @@ export function LeagueScreen() {
       <Modal visible={showJoin} transparent animationType="fade" onRequestClose={() => setShowJoin(false)}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Pressable style={styles.modalOverlay} onPress={() => { Keyboard.dismiss(); setShowJoin(false); }}>
-          <Pressable style={styles.modalContent} onPress={() => Keyboard.dismiss()}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>Lige Katıl</Text>
 
             <Text style={styles.modalLabel}>Lig Kodu</Text>
