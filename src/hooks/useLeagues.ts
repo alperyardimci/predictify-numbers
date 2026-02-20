@@ -11,7 +11,7 @@ export function useLeagues() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const playerId = await getPlayerId();
+      const playerId = getPlayerId();
       const items = await getMyLeagues(playerId);
       // Sort by most recent match first, then by join date
       items.sort((a, b) => {

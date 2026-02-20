@@ -1,25 +1,21 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
 
-const PLAYER_ID_KEY = '@predictify_player_id';
-
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
+export function ensureAuth(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      if (user) {
+        resolve(user.uid);
+      } else {
+        signInAnonymously(auth)
+          .then((cred) => resolve(cred.user.uid))
+          .catch(reject);
+      }
+    });
   });
 }
 
-let cachedPlayerId: string | null = null;
-
-export async function getPlayerId(): Promise<string> {
-  if (cachedPlayerId) return cachedPlayerId;
-
-  let id = await AsyncStorage.getItem(PLAYER_ID_KEY);
-  if (!id) {
-    id = generateUUID();
-    await AsyncStorage.setItem(PLAYER_ID_KEY, id);
-  }
-  cachedPlayerId = id;
-  return id;
+export function getPlayerId(): string {
+  return auth.currentUser!.uid;
 }

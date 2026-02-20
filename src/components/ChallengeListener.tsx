@@ -29,7 +29,7 @@ export function ChallengeListener({ navigationRef }: Props) {
 
   // Get player ID on mount
   useEffect(() => {
-    getPlayerId().then(setPlayerId);
+    setPlayerId(getPlayerId());
   }, []);
 
   // Listen for incoming challenges globally

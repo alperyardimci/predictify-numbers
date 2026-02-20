@@ -14,7 +14,8 @@ export function useLeagueDetail(leagueId: string) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [leagueData, pid] = await Promise.all([getLeague(leagueId), getPlayerId()]);
+      const pid = getPlayerId();
+      const leagueData = await getLeague(leagueId);
       if (cancelled) return;
       setLeague(leagueData);
       setMyPlayerId(pid);

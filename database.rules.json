@@ -1,47 +1,172 @@
 {
   "rules": {
     "matchmaking": {
-      ".read": true,
-      ".write": true
-    },
-    "playerNotifications": {
-      ".read": true,
-      ".write": true
-    },
-    "games": {
-      ".read": true,
-      ".write": true
-    },
-    "leagues": {
-      ".read": true,
-      ".write": true
-    },
-    "leagueMembers": {
-      ".read": true,
-      ".write": true
-    },
-    "playerLeagues": {
-      ".read": true,
-      ".write": true
-    },
-    "leagueCodes": {
-      ".read": true,
-      ".write": true
-    },
-    "leagueMatches": {
-      ".read": true,
-      ".write": true,
-      "$leagueId": {
-        ".indexOn": ["timestamp"]
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$entryId": {
+        ".validate": "newData.hasChildren(['playerId', 'timestamp', 'assistedMode']) && newData.child('playerId').isString() && newData.child('timestamp').isNumber() && newData.child('assistedMode').isBoolean() && (!newData.hasChild('leagueId') || newData.child('leagueId').isString() || newData.child('leagueId').val() === null)",
+        "$other": { ".validate": false }
       }
     },
-    "challenges": {
-      ".read": true,
-      ".write": true
+
+    "playerNotifications": {
+      "$playerId": {
+        ".read": "auth != null && auth.uid === $playerId",
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['gameId', 'slot']) && newData.child('gameId').isString() && (newData.child('slot').val() === 'player1' || newData.child('slot').val() === 'player2')",
+        "$other": { ".validate": false }
+      }
     },
+
+    "games": {
+      "$gameId": {
+        ".read": "auth != null && (data.child('player1/id').val() === auth.uid || data.child('player2/id').val() === auth.uid)",
+        ".write": "auth != null && (!data.exists() || data.child('player1/id').val() === auth.uid || data.child('player2/id').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['status', 'secretNumber', 'player1', 'player2', 'coinFlip', 'turns', 'guesses', 'result'])",
+
+        "status": {
+          ".validate": "newData.val() === 'coin_flip' || newData.val() === 'playing' || newData.val() === 'finished'"
+        },
+        "secretNumber": {
+          ".validate": "newData.isString() && newData.val().length === 6"
+        },
+        "assistedMode": {
+          ".validate": "newData.isBoolean()"
+        },
+        "player1": {
+          ".validate": "newData.hasChildren(['id', 'lastSeen']) && newData.child('id').isString() && newData.child('lastSeen').isNumber()",
+          "$other": { ".validate": false }
+        },
+        "player2": {
+          ".validate": "newData.hasChildren(['id', 'lastSeen']) && newData.child('id').isString() && newData.child('lastSeen').isNumber()",
+          "$other": { ".validate": false }
+        },
+        "coinFlip": {
+          ".validate": "newData.hasChildren(['systemDigit'])",
+          "systemDigit": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9"
+          },
+          "player1Pick": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9"
+          },
+          "player2Pick": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9"
+          },
+          "firstTurn": {
+            ".validate": "newData.val() === 'player1' || newData.val() === 'player2'"
+          },
+          "$other": { ".validate": false }
+        },
+        "turns": {
+          ".validate": "newData.hasChildren(['currentTurn', 'turnNumber', 'turnStartedAt'])",
+          "currentTurn": {
+            ".validate": "newData.val() === 'player1' || newData.val() === 'player2'"
+          },
+          "turnNumber": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "turnStartedAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": { ".validate": false }
+        },
+        "guesses": {
+          "player1": {
+            "$guessId": {
+              ".validate": "newData.hasChildren(['guess', 'bulls', 'cows', 'index']) && newData.child('guess').isString() && newData.child('guess').val().length === 6 && newData.child('bulls').isNumber() && newData.child('bulls').val() >= 0 && newData.child('bulls').val() <= 6 && newData.child('cows').isNumber() && newData.child('cows').val() >= 0 && newData.child('cows').val() <= 6 && newData.child('index').isNumber()"
+            }
+          },
+          "player2": {
+            "$guessId": {
+              ".validate": "newData.hasChildren(['guess', 'bulls', 'cows', 'index']) && newData.child('guess').isString() && newData.child('guess').val().length === 6 && newData.child('bulls').isNumber() && newData.child('bulls').val() >= 0 && newData.child('bulls').val() <= 6 && newData.child('cows').isNumber() && newData.child('cows').val() >= 0 && newData.child('cows').val() <= 6 && newData.child('index').isNumber()"
+            }
+          },
+          "$other": { ".validate": false }
+        },
+        "result": {
+          ".validate": "newData.hasChildren(['winner', 'reason', 'winnerGuessCount'])",
+          "winner": {
+            ".validate": "newData.val() === null || newData.val() === 'player1' || newData.val() === 'player2'"
+          },
+          "reason": {
+            ".validate": "newData.val() === null || newData.val() === 'guessed' || newData.val() === 'disconnect' || newData.val() === 'forfeit'"
+          },
+          "winnerGuessCount": {
+            ".validate": "newData.val() === null || (newData.isNumber() && newData.val() >= 0)"
+          },
+          "$other": { ".validate": false }
+        },
+        "leagueId": {
+          ".validate": "newData.isString()"
+        },
+        "leagueStatsUpdated": {
+          ".validate": "newData.isBoolean()"
+        },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "leagues": {
+      ".read": "auth != null",
+      "$leagueId": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['name', 'code', 'createdBy', 'createdAt', 'assistedMode', 'memberCount']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 30 && newData.child('code').isString() && newData.child('code').val().length === 6 && newData.child('createdBy').isString() && newData.child('createdAt').isNumber() && newData.child('assistedMode').isBoolean() && newData.child('memberCount').isNumber() && newData.child('memberCount').val() >= 0",
+        "$other": { ".validate": false }
+      }
+    },
+
+    "leagueMembers": {
+      ".read": "auth != null",
+      "$leagueId": {
+        "$memberId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['playerId', 'displayName', 'joinedAt', 'wins', 'losses', 'totalGuessesInWins', 'lastMatchAt']) && newData.child('playerId').isString() && newData.child('displayName').isString() && newData.child('displayName').val().length >= 1 && newData.child('displayName').val().length <= 20 && newData.child('joinedAt').isNumber() && newData.child('wins').isNumber() && newData.child('wins').val() >= 0 && newData.child('losses').isNumber() && newData.child('losses').val() >= 0 && newData.child('totalGuessesInWins').isNumber() && newData.child('totalGuessesInWins').val() >= 0 && newData.child('lastMatchAt').isNumber()",
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    "playerLeagues": {
+      "$playerId": {
+        ".read": "auth != null && auth.uid === $playerId",
+        ".write": "auth != null && auth.uid === $playerId"
+      }
+    },
+
+    "leagueCodes": {
+      ".read": "auth != null",
+      "$code": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.isString()"
+      }
+    },
+
+    "leagueMatches": {
+      ".read": "auth != null",
+      "$leagueId": {
+        ".indexOn": ["timestamp"],
+        "$matchId": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['winnerId', 'loserId', 'winnerName', 'loserName', 'reason', 'timestamp']) && newData.child('winnerId').isString() && newData.child('loserId').isString() && newData.child('winnerName').isString() && newData.child('loserName').isString() && (newData.child('reason').val() === 'guessed' || newData.child('reason').val() === 'disconnect' || newData.child('reason').val() === 'forfeit') && newData.child('timestamp').isNumber() && (!newData.hasChild('winnerGuessCount') || newData.child('winnerGuessCount').val() === null || (newData.child('winnerGuessCount').isNumber() && newData.child('winnerGuessCount').val() >= 0))",
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    "challenges": {
+      "$challengeId": {
+        ".read": "auth != null && (data.child('fromId').val() === auth.uid || data.child('toId').val() === auth.uid)",
+        ".write": "auth != null && (!data.exists() || data.child('fromId').val() === auth.uid || data.child('toId').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['fromId', 'toId', 'fromName', 'leagueId', 'assistedMode', 'status', 'timestamp']) && newData.child('fromId').isString() && newData.child('toId').isString() && newData.child('fromName').isString() && newData.child('leagueId').isString() && newData.child('assistedMode').isBoolean() && (newData.child('status').val() === 'pending' || newData.child('status').val() === 'accepted' || newData.child('status').val() === 'declined' || newData.child('status').val() === 'expired') && newData.child('timestamp').isNumber() && (!newData.hasChild('gameId') || newData.child('gameId').isString() || newData.child('gameId').val() === null)",
+        "$other": { ".validate": false }
+      }
+    },
+
     "playerChallenges": {
-      ".read": true,
-      ".write": true
+      "$playerId": {
+        ".read": "auth != null && auth.uid === $playerId",
+        ".write": "auth != null"
+      }
     }
   }
 }

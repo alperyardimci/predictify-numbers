@@ -69,7 +69,7 @@ export function LeagueScreen() {
     }
     try {
       setCreating(true);
-      const playerId = await getPlayerId();
+      const playerId = getPlayerId();
       await saveLastDisplayName(trimmedDisplay);
       const league = await createLeague(playerId, trimmedName, createAssisted, trimmedDisplay);
       setCreatedCode(league.code);
@@ -102,7 +102,7 @@ export function LeagueScreen() {
     }
     try {
       setJoining(true);
-      const playerId = await getPlayerId();
+      const playerId = getPlayerId();
       await saveLastDisplayName(trimmedDisplay);
       const league = await joinLeague(playerId, trimmedCode, trimmedDisplay);
       setShowJoin(false);

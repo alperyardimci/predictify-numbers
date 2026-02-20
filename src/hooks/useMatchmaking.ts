@@ -61,7 +61,7 @@ export function useMatchmaking() {
       setError(null);
       setMatch(null);
 
-      const playerId = await getPlayerId();
+      const playerId = getPlayerId();
       playerIdRef.current = playerId;
       console.log('[Matchmaking] Player ID:', playerId);
 
