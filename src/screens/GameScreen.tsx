@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   Text,
   Switch,
-  Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { alert } from '../utils/alert';
 import * as Haptics from '../utils/haptics';
 import { Timer } from '../components/Timer';
 import { GuessInput } from '../components/GuessInput';
@@ -92,7 +92,7 @@ export function GameScreen() {
 
   const handleGoHome = () => {
     if (state.gameStatus === 'playing' && state.moveCount > 0) {
-      Alert.alert(
+      alert(
         'Oyundan Çık',
         'Oyun ilerlemeniz kaybolacak. Emin misiniz?',
         [

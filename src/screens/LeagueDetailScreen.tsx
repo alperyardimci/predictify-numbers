@@ -7,11 +7,11 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
+import { alert } from '../utils/alert';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { LeagueStanding, LeagueMatch } from '../types/league';
@@ -79,7 +79,7 @@ export function LeagueDetailScreen() {
         setPendingChallengeId(null);
         setChallengeTargetId(null);
         setChallengeTargetName('');
-        Alert.alert('Reddedildi', 'Rakip maç teklifini reddetti.');
+        alert('Reddedildi', 'Rakip maç teklifini reddetti.');
       }
     });
     return unsub;
@@ -88,7 +88,7 @@ export function LeagueDetailScreen() {
   const handleCopyCode = async () => {
     if (league?.code) {
       await Clipboard.setStringAsync(league.code);
-      Alert.alert('Kopyalandı', `Lig kodu "${league.code}" panoya kopyalandı.`);
+      alert('Kopyalandı', `Lig kodu "${league.code}" panoya kopyalandı.`);
     }
   };
 
@@ -99,7 +99,7 @@ export function LeagueDetailScreen() {
 
   const handleLeaveLeague = () => {
     if (!myPlayerId || !league) return;
-    Alert.alert(
+    alert(
       'Ligden Ayrıl',
       `"${league.name}" liginden ayrılmak istediğine emin misin?`,
       [
@@ -112,7 +112,7 @@ export function LeagueDetailScreen() {
               await leaveLeague(myPlayerId, leagueId);
               navigation.goBack();
             } catch (err: any) {
-              Alert.alert('Hata', err.message || 'Ligden ayrılınamadı.');
+              alert('Hata', err.message || 'Ligden ayrılınamadı.');
             }
           },
         },
@@ -126,7 +126,7 @@ export function LeagueDetailScreen() {
     const myStanding = standings.find((s) => s.playerId === myPlayerId);
     const myName = myStanding?.displayName || 'Oyuncu';
 
-    Alert.alert(
+    alert(
       'Maç Teklifi',
       `${targetName} adlı oyuncuya maç teklif et?`,
       [
@@ -140,7 +140,7 @@ export function LeagueDetailScreen() {
               setChallengeTargetId(targetId);
               setChallengeTargetName(targetName);
             } catch (err: any) {
-              Alert.alert('Hata', err.message || 'Teklif gönderilemedi.');
+              alert('Hata', err.message || 'Teklif gönderilemedi.');
             }
           },
         },

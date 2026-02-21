@@ -5,9 +5,9 @@ import {
   StyleSheet,
   Modal,
   Pressable,
-  Alert,
 } from 'react-native';
 import { NavigationContainerRef } from '@react-navigation/native';
+import { alert } from '../utils/alert';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { LeagueChallenge } from '../types/league';
@@ -63,7 +63,7 @@ export function ChallengeListener({ navigationRef }: Props) {
         });
       }
     } catch (err: any) {
-      Alert.alert('Hata', err.message || 'Teklif kabul edilemedi.');
+      alert('Hata', err.message || 'Teklif kabul edilemedi.');
     }
   };
 

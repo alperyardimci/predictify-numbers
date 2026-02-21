@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,6 +18,7 @@ import { CoinFlipView } from '../components/CoinFlipView';
 import { OnlineInfoBar } from '../components/OnlineInfoBar';
 import { OnlineResultModal } from '../components/OnlineResultModal';
 import { DisconnectBanner } from '../components/DisconnectBanner';
+import { alert } from '../utils/alert';
 import * as Haptics from '../utils/haptics';
 import { updateWinStreak } from '../utils/storage';
 import { updateLeagueStats } from '../services/league';
@@ -44,7 +44,7 @@ export function OnlineGameScreen() {
   };
 
   const handleQuit = () => {
-    Alert.alert(
+    alert(
       'Pes Et',
       'Oyundan çekilmek istediğine emin misin? Rakip kazanacak.',
       [

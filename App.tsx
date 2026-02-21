@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -21,12 +21,26 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   const navigationRef = useRef<NavigationContainerRef<RootStackParamList>>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     ensureAuth()
       .then(() => setAuthReady(true))
-      .catch(() => setAuthReady(true));
+      .catch((err) => {
+        console.error('[Auth] Failed:', err);
+        setAuthError(err?.message || 'Authentication failed');
+      });
   }, []);
+
+  if (authError) {
+    return (
+      <View style={loadingStyles.container}>
+        <Text style={{ color: '#ff6b6b', fontSize: 16, textAlign: 'center', paddingHorizontal: 32 }}>
+          Bağlantı hatası:{'\n'}{authError}
+        </Text>
+      </View>
+    );
+  }
 
   if (!authReady) {
     return (

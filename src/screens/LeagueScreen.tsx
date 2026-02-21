@@ -10,7 +10,6 @@ import {
   TextInput,
   Switch,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Keyboard,
   Platform,
@@ -18,6 +17,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
+import { alert } from '../utils/alert';
 import { colors, spacing, borderRadius } from '../constants/theme';
 import { RootStackParamList } from '../types';
 import { LeagueListItem } from '../types/league';
@@ -64,7 +64,7 @@ export function LeagueScreen() {
     const trimmedName = createName.trim();
     const trimmedDisplay = createDisplayName.trim();
     if (!trimmedName || !trimmedDisplay) {
-      Alert.alert('Hata', 'Lig adı ve takma ad gerekli.');
+      alert('Hata', 'Lig adı ve takma ad gerekli.');
       return;
     }
     try {
@@ -75,7 +75,7 @@ export function LeagueScreen() {
       setCreatedCode(league.code);
       reload();
     } catch (err: any) {
-      Alert.alert('Hata', err.message || 'Lig oluşturulamadı.');
+      alert('Hata', err.message || 'Lig oluşturulamadı.');
     } finally {
       setCreating(false);
     }
@@ -90,14 +90,14 @@ export function LeagueScreen() {
 
   const handleCopyCode = async (code: string) => {
     await Clipboard.setStringAsync(code);
-    Alert.alert('Kopyalandı', `Lig kodu "${code}" panoya kopyalandı.`);
+    alert('Kopyalandı', `Lig kodu "${code}" panoya kopyalandı.`);
   };
 
   const handleJoin = async () => {
     const trimmedCode = joinCode.trim().toUpperCase();
     const trimmedDisplay = joinDisplayName.trim();
     if (!trimmedCode || !trimmedDisplay) {
-      Alert.alert('Hata', 'Lig kodu ve takma ad gerekli.');
+      alert('Hata', 'Lig kodu ve takma ad gerekli.');
       return;
     }
     try {
@@ -109,7 +109,7 @@ export function LeagueScreen() {
       setJoinCode('');
       navigation.navigate('LeagueDetail', { leagueId: league.id });
     } catch (err: any) {
-      Alert.alert('Hata', err.message || 'Lige katılınamadı.');
+      alert('Hata', err.message || 'Lige katılınamadı.');
     } finally {
       setJoining(false);
     }
@@ -252,8 +252,9 @@ export function LeagueScreen() {
       {/* Create Modal */}
       <Modal visible={showCreate} transparent animationType="fade" onRequestClose={handleCloseCreate}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable style={styles.modalOverlay} onPress={() => { Keyboard.dismiss(); handleCloseCreate(); }}>
-          <Pressable style={styles.modalContent} onPress={() => Keyboard.dismiss()}>
+        <View style={styles.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => { Keyboard.dismiss(); handleCloseCreate(); }} />
+          <View style={styles.modalContent}>
             {createdCode ? (
               <>
                 <Text style={styles.successIcon}>{'\u{1F389}'}</Text>
@@ -328,16 +329,17 @@ export function LeagueScreen() {
                 </Pressable>
               </>
             )}
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
         </KeyboardAvoidingView>
       </Modal>
 
       {/* Join Modal */}
       <Modal visible={showJoin} transparent animationType="fade" onRequestClose={() => setShowJoin(false)}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable style={styles.modalOverlay} onPress={() => { Keyboard.dismiss(); setShowJoin(false); }}>
-          <Pressable style={styles.modalContent} onPress={() => Keyboard.dismiss()}>
+        <View style={styles.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => { Keyboard.dismiss(); setShowJoin(false); }} />
+          <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Lige Katıl</Text>
 
             <Text style={styles.modalLabel}>Lig Kodu</Text>
@@ -378,8 +380,8 @@ export function LeagueScreen() {
                 <Text style={styles.modalButtonText}>Katıl</Text>
               )}
             </Pressable>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
@@ -674,6 +676,8 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     borderWidth: 1,
     borderColor: ACCENT_GOLD + '30',
+    position: 'relative' as const,
+    zIndex: 1,
   },
   successIcon: {
     fontSize: 40,
